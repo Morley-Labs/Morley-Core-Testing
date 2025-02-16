@@ -110,6 +110,7 @@
             "ir_representation": "LL_NOT",
             "description": "Logical NOT"
         }
+        
     },
     "comparison_operators": {
         "EQUAL": {
