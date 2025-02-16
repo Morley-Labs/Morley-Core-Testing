@@ -6,13 +6,13 @@ Morley-IR is an **Intermediate Representation (IR) library** designed to standar
 As industries integrate **blockchain-based automation**, there is a need for a **standardized IR** to translate traditional automation logic into structured data formats. Morley-IR provides:
 
 - **Formal IR definitions** for **Ladder Logic (LL)** and **Structured Text (ST)**.
-- **Mappings between industrial programming elements and IR components**.
-- **Validation and integrity checks** for ensuring correct IR structure.
+- **Validated mappings** between industrial programming elements and IR components.
+- **Unit tests to ensure correctness** of IR structures and mappings.
 
 ### **Key Features**
-🔹 **Ladder Logic → Morley-IR Conversion** – Ensures accurate translation of **rungs, coils, timers, and counters**.  
+🔹 **Ladder Logic → Morley-IR Conversion** – Fully implemented and validated translation of **rungs, coils, timers, and counters**.  
 🔹 **Structured Text → Morley-IR Mapping** – Standardized representation of **logical conditions, loops, and arithmetic**.  
-🔹 **IR Schema Validation** – Checks that all IR structures conform to defined specifications.  
+🔹 **IR Schema Validation** – Ensures all IR structures conform to defined specifications, with tests verifying correctness.  
 🔹 **Compatible with Morley Compiler** – IR output is designed to be used in **separate compilation processes**.  
 
 ## Installation
@@ -30,25 +30,30 @@ pip install -r requirements.txt
 ## Project Structure
 ```
 Morley-IR/
-│── src/                 # Core IR definitions
-│── mappings/            # Ladder Logic & Structured Text to IR mappings
-│── examples/            # Example IR representations
-│── tests/               # Unit tests for IR validation
+│── src/                 # Core IR processing scripts (in progress)
+│── mappings/            # Fully implemented Ladder Logic & Structured Text mappings
+│── examples/            # Sample IR representations (to be added)
+│── tests/               # Unit tests ensuring correctness of mappings and transformations
 │── README.md            # Documentation
 ```
 
 ## Usage
 ### **Convert Ladder Logic into IR**
+Once the IR processing scripts are finalized, usage instructions will be provided. Expected functionality:
 ```sh
-python ll_parser.py input.ll
+python src/ll_to_ir.py input.ll
 ```
 
 ### **Validate IR Structure**
 ```sh
-python validator_ir_transform.py input.ir
+python src/validate_ir.py input.ir
 ```
 
 ---
+
+## Next Steps
+🔹 **Finalizing IR Processing Scripts** – Implement transformation logic inside `src/`.
+🔹 **Creating Example Files** – Populate `examples/` with IR outputs for reference.
 
 ## Contributing
 We welcome contributions! To get started:
@@ -73,3 +78,4 @@ For questions, discussions, or collaborations:
 - **Website**: [MorleyLang.org](https://MorleyLang.org)
 - **Twitter/X**: [@MorleyCardano](https://x.com/MorleyCardano)
 - **Email**: admin@MorleyLang.org
+
