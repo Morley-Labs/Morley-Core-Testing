@@ -2,8 +2,14 @@ import json
 import unittest
 
 # Load the Ladder Logic mappings
-with open("../mappings/ladder_logic.json", "r") as file:
+import os
+
+# Use the absolute path for the mappings file
+ladder_logic_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../mappings/ladder_logic.json"))
+
+with open(ladder_logic_path, "r") as file:
     ladder_logic = json.load(file)
+
 
 # Reference list of OpenPLC-supported instructions
 openplc_reference = {
