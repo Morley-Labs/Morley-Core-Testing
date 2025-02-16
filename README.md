@@ -5,11 +5,11 @@ Morley-IR is an **Intermediate Representation (IR) library** designed to standar
 ## Overview
 As industries integrate **blockchain-based automation**, there is a need for a **standardized IR** to translate traditional automation logic into structured data formats. Morley-IR provides:
 
-- ✅ **Formal IR definitions** for **Ladder Logic (LL)** and **Structured Text (ST)**.
-- ✅ **Mappings between industrial programming elements and IR components**.
-- ✅ **Validation and integrity checks** for ensuring correct IR structure.
+- **Formal IR definitions** for **Ladder Logic (LL)** and **Structured Text (ST)**.
+- **Mappings between industrial programming elements and IR components**.
+- **Validation and integrity checks** for ensuring correct IR structure.
 
-### **🛠 Key Features**
+### **Key Features**
 🔹 **Ladder Logic → Morley-IR Conversion** – Ensures accurate translation of **rungs, coils, timers, and counters**.  
 🔹 **Structured Text → Morley-IR Mapping** – Standardized representation of **logical conditions, loops, and arithmetic**.  
 🔹 **IR Schema Validation** – Checks that all IR structures conform to defined specifications.  
