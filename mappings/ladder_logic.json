@@ -1,16 +1,244 @@
 {
     "contacts": {
-      "normally_open": { "symbol": "XIC", "ir_representation": "LL_XIC" },
-      "normally_closed": { "symbol": "XIO", "ir_representation": "LL_XIO" }
+        "normally_open": {
+            "symbol": "XIC",
+            "ir_representation": "LL_XIC",
+            "description": "Examine If Closed (Normally Open Contact)"
+        },
+        "normally_closed": {
+            "symbol": "XIO",
+            "ir_representation": "LL_XIO",
+            "description": "Examine If Open (Normally Closed Contact)"
+        }
     },
     "coils": {
-      "output": { "symbol": "OTE", "ir_representation": "LL_OTE" },
-      "latch": { "symbol": "OTL", "ir_representation": "LL_OTL" },
-      "unlatch": { "symbol": "OTU", "ir_representation": "LL_OTU" }
+        "output": {
+            "symbol": "OTE",
+            "ir_representation": "LL_OTE",
+            "description": "Output Energize (Coil)"
+        },
+        "latch": {
+            "symbol": "OTL",
+            "ir_representation": "LL_OTL",
+            "description": "Latching Relay Set"
+        },
+        "unlatch": {
+            "symbol": "OTU",
+            "ir_representation": "LL_OTU",
+            "description": "Latching Relay Reset"
+        }
     },
     "timers": {
-      "TON": { "description": "On-Delay Timer", "ir_representation": "LL_TON" },
-      "TOF": { "description": "Off-Delay Timer", "ir_representation": "LL_TOF" }
+        "TON": {
+            "symbol": "TON",
+            "ir_representation": "LL_TON",
+            "description": "Timer ON Delay"
+        },
+        "TOF": {
+            "symbol": "TOF",
+            "ir_representation": "LL_TOF",
+            "description": "Timer OFF Delay"
+        },
+        "RTO": {
+            "symbol": "RTO",
+            "ir_representation": "LL_RTO",
+            "description": "Retentive Timer"
+        }
+    },
+    "counters": {
+        "CTU": {
+            "symbol": "CTU",
+            "ir_representation": "LL_CTU",
+            "description": "Count Up"
+        },
+        "CTD": {
+            "symbol": "CTD",
+            "ir_representation": "LL_CTD",
+            "description": "Count Down"
+        },
+        "RES": {
+            "symbol": "RES",
+            "ir_representation": "LL_RES",
+            "description": "Reset Counter/Timer"
+        }
+    },
+    "arithmetic": {
+        "ADD": {
+            "symbol": "ADD",
+            "ir_representation": "LL_ADD",
+            "description": "Addition"
+        },
+        "SUB": {
+            "symbol": "SUB",
+            "ir_representation": "LL_SUB",
+            "description": "Subtraction"
+        },
+        "MUL": {
+            "symbol": "MUL",
+            "ir_representation": "LL_MUL",
+            "description": "Multiplication"
+        },
+        "DIV": {
+            "symbol": "DIV",
+            "ir_representation": "LL_DIV",
+            "description": "Division"
+        },
+        "MOD": {
+            "symbol": "MOD",
+            "ir_representation": "LL_MOD",
+            "description": "Modulus (Remainder)"
+        }
+    },
+    "logical_operations": {
+        "AND": {
+            "symbol": "AND",
+            "ir_representation": "LL_AND",
+            "description": "Logical AND"
+        },
+        "OR": {
+            "symbol": "OR",
+            "ir_representation": "LL_OR",
+            "description": "Logical OR"
+        },
+        "XOR": {
+            "symbol": "XOR",
+            "ir_representation": "LL_XOR",
+            "description": "Logical Exclusive OR"
+        },
+        "NOT": {
+            "symbol": "NOT",
+            "ir_representation": "LL_NOT",
+            "description": "Logical NOT"
+        }
+    },
+    "comparison_operators": {
+        "EQUAL": {
+            "symbol": "EQU",
+            "ir_representation": "LL_EQU",
+            "description": "Equal to (==)"
+        },
+        "NOT_EQUAL": {
+            "symbol": "NEQ",
+            "ir_representation": "LL_NEQ",
+            "description": "Not Equal to (!=)"
+        },
+        "LESS_THAN": {
+            "symbol": "LES",
+            "ir_representation": "LL_LES",
+            "description": "Less Than (<)"
+        },
+        "GREATER_THAN": {
+            "symbol": "GRT",
+            "ir_representation": "LL_GRT",
+            "description": "Greater Than (>)"
+        },
+        "LESS_OR_EQUAL": {
+            "symbol": "LEQ",
+            "ir_representation": "LL_LEQ",
+            "description": "Less Than or Equal (<=)"
+        },
+        "GREATER_OR_EQUAL": {
+            "symbol": "GEQ",
+            "ir_representation": "LL_GEQ",
+            "description": "Greater Than or Equal (>=)"
+        }
+    },
+    "bitwise_operations": {
+        "AND_BIT": {
+            "symbol": "AND_BIT",
+            "ir_representation": "LL_AND_BIT",
+            "description": "Bitwise AND"
+        },
+        "OR_BIT": {
+            "symbol": "OR_BIT",
+            "ir_representation": "LL_OR_BIT",
+            "description": "Bitwise OR"
+        },
+        "XOR_BIT": {
+            "symbol": "XOR_BIT",
+            "ir_representation": "LL_XOR_BIT",
+            "description": "Bitwise XOR"
+        },
+        "NOT_BIT": {
+            "symbol": "NOT_BIT",
+            "ir_representation": "LL_NOT_BIT",
+            "description": "Bitwise NOT"
+        }
+    },
+    "move_operations": {
+        "MOV": {
+            "symbol": "MOV",
+            "ir_representation": "LL_MOV",
+            "description": "Move Data"
+        },
+        "SWAP": {
+            "symbol": "SWAP",
+            "ir_representation": "LL_SWAP",
+            "description": "Swap Two Registers"
+        },
+        "INT_TO_REAL": {
+            "symbol": "INT_TO_REAL",
+            "ir_representation": "LL_INT_TO_REAL",
+            "description": "Convert Integer to Real"
+        },
+        "REAL_TO_INT": {
+            "symbol": "REAL_TO_INT",
+            "ir_representation": "LL_REAL_TO_INT",
+            "description": "Convert Real to Integer"
+        }
+    },
+    "jump_subroutine": {
+        "JMP": {
+            "symbol": "JMP",
+            "ir_representation": "LL_JMP",
+            "description": "Jump to Label"
+        },
+        "LBL": {
+            "symbol": "LBL",
+            "ir_representation": "LL_LBL",
+            "description": "Label for Jump"
+        },
+        "JSR": {
+            "symbol": "JSR",
+            "ir_representation": "LL_JSR",
+            "description": "Jump to Subroutine"
+        },
+        "RET": {
+            "symbol": "RET",
+            "ir_representation": "LL_RET",
+            "description": "Return from Subroutine"
+        }
+    },
+    "floating_point_math": {
+        "SIN": {
+            "symbol": "SIN",
+            "ir_representation": "LL_SIN",
+            "description": "Sine Function"
+        },
+        "COS": {
+            "symbol": "COS",
+            "ir_representation": "LL_COS",
+            "description": "Cosine Function"
+        },
+        "TAN": {
+            "symbol": "TAN",
+            "ir_representation": "LL_TAN",
+            "description": "Tangent Function"
+        },
+        "LOG": {
+            "symbol": "LOG",
+            "ir_representation": "LL_LOG",
+            "description": "Logarithm Function"
+        },
+        "EXP": {
+            "symbol": "EXP",
+            "ir_representation": "LL_EXP",
+            "description": "Exponential Function"
+        },
+        "SQRT": {
+            "symbol": "SQRT",
+            "ir_representation": "LL_SQRT",
+            "description": "Square Root Function"
+        }
     }
-  }
-  
+}
