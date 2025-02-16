@@ -1,0 +1,16 @@
+{
+    "contacts": {
+      "normally_open": { "symbol": "XIC", "ir_representation": "LL_XIC" },
+      "normally_closed": { "symbol": "XIO", "ir_representation": "LL_XIO" }
+    },
+    "coils": {
+      "output": { "symbol": "OTE", "ir_representation": "LL_OTE" },
+      "latch": { "symbol": "OTL", "ir_representation": "LL_OTL" },
+      "unlatch": { "symbol": "OTU", "ir_representation": "LL_OTU" }
+    },
+    "timers": {
+      "TON": { "description": "On-Delay Timer", "ir_representation": "LL_TON" },
+      "TOF": { "description": "Off-Delay Timer", "ir_representation": "LL_TOF" }
+    }
+  }
+  
