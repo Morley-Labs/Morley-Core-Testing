@@ -1,0 +1,19 @@
+{
+    "logical_operators": {
+      "AND": { "ir_representation": "ST_AND" },
+      "OR": { "ir_representation": "ST_OR" },
+      "NOT": { "ir_representation": "ST_NOT" }
+    },
+    "comparison_operators": {
+  "=": { "ir_representation": "ST_EQ" },
+  "<": { "ir_representation": "ST_LT" },
+  ">": { "ir_representation": "ST_GT" },
+  "<=": { "ir_representation": "ST_LEQ" },
+  ">=": { "ir_representation": "ST_GEQ" }
+},
+    "timers": {
+      "TON": { "description": "On-Delay Timer", "ir_representation": "ST_TON" },
+      "TOF": { "description": "Off-Delay Timer", "ir_representation": "ST_TOF" }
+    }
+  }
+  
