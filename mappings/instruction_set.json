@@ -3,14 +3,29 @@
       "AND_BIT": { "ir_representation": "IR_AND_BIT" },
       "OR_BIT": { "ir_representation": "IR_OR_BIT" },
       "XOR_BIT": { "ir_representation": "IR_XOR_BIT" },
-      "NOT_BIT": { "ir_representation": "IR_NOT_BIT" }
+      "NOT_BIT": { "ir_representation": "IR_NOT_BIT" },
+      "SHL": { "ir_representation": "IR_SHL" },
+      "SHR": { "ir_representation": "IR_SHR" },
+      "ROR": { "ir_representation": "IR_ROR" },
+      "ROL": { "ir_representation": "IR_ROL" }
   },
   "arithmetic": {
       "ADD": { "ir_representation": "IR_ADD" },
       "SUB": { "ir_representation": "IR_SUB" },
       "MUL": { "ir_representation": "IR_MUL" },
       "DIV": { "ir_representation": "IR_DIV" },
-      "MOD": { "ir_representation": "IR_MOD" }
+      "MOD": { "ir_representation": "IR_MOD" },
+      "ABS": { "ir_representation": "IR_ABS" },
+      "SQRT": { "ir_representation": "IR_SQRT" },
+      "LN": { "ir_representation": "IR_LN" },
+      "LOG": { "ir_representation": "IR_LOG" },
+      "EXP": { "ir_representation": "IR_EXP" },
+      "SIN": { "ir_representation": "IR_SIN" },
+      "COS": { "ir_representation": "IR_COS" },
+      "TAN": { "ir_representation": "IR_TAN" },
+      "ASIN": { "ir_representation": "IR_ASIN" },
+      "ACOS": { "ir_representation": "IR_ACOS" },
+      "ATAN": { "ir_representation": "IR_ATAN" }
   },
   "logical_operations": {
       "AND": { "ir_representation": "IR_AND" },
@@ -31,5 +46,21 @@
       "SWAP": { "ir_representation": "IR_SWAP" },
       "INT_TO_REAL": { "ir_representation": "IR_INT_TO_REAL" },
       "REAL_TO_INT": { "ir_representation": "IR_REAL_TO_INT" }
+  },
+  "timers_counters": {
+      "TON": { "ir_representation": "IR_TON" },
+      "TOF": { "ir_representation": "IR_TOF" },
+      "TP": { "ir_representation": "IR_TP" },
+      "CTU": { "ir_representation": "IR_CTU" },
+      "CTD": { "ir_representation": "IR_CTD" },
+      "CTUD": { "ir_representation": "IR_CTUD" }
+  },
+  "selection_functions": {
+      "SEL": { "ir_representation": "IR_SEL" },
+      "MUX": { "ir_representation": "IR_MUX" },
+      "MAX": { "ir_representation": "IR_MAX" },
+      "MIN": { "ir_representation": "IR_MIN" },
+      "LIMIT": { "ir_representation": "IR_LIMIT" }
   }
 }
+
