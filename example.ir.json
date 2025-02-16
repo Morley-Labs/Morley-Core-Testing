@@ -1,0 +1,35 @@
+{
+  "type": "LadderCore IR",
+  "instructions": [
+    {
+      "type": "INPUT",
+      "args": [
+        "X1"
+      ]
+    },
+    {
+      "type": "AND",
+      "args": [
+        "X2"
+      ]
+    },
+    {
+      "type": "OUTPUT",
+      "args": [
+        "Y1"
+      ]
+    }
+  ],
+  "timers": {},
+  "counters": {},
+  "math_operations": {},
+  "comparators": {},
+  "set_reset_latches": {},
+  "jump_instructions": {},
+  "function_blocks": {},
+  "scan_cycle": [
+    "INPUT",
+    "AND",
+    "OUTPUT"
+  ]
+}
