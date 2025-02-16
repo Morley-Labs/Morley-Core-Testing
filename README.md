@@ -30,12 +30,10 @@ pip install -r requirements.txt
 ## Project Structure
 ```
 Morley-IR/
-│── src/                 # Core IR structure definitions
+│── src/                 # Core IR definitions
 │── mappings/            # Ladder Logic & Structured Text to IR mappings
 │── examples/            # Example IR representations
 │── tests/               # Unit tests for IR validation
-│── ll_parser.py         # Parses Ladder Logic into IR
-│── validator_ir_transform.py  # Validates IR integrity
 │── README.md            # Documentation
 ```
 
