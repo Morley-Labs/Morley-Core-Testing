@@ -1,0 +1,35 @@
+{
+  "bitwise_operations": {
+      "AND_BIT": { "ir_representation": "IR_AND_BIT" },
+      "OR_BIT": { "ir_representation": "IR_OR_BIT" },
+      "XOR_BIT": { "ir_representation": "IR_XOR_BIT" },
+      "NOT_BIT": { "ir_representation": "IR_NOT_BIT" }
+  },
+  "arithmetic": {
+      "ADD": { "ir_representation": "IR_ADD" },
+      "SUB": { "ir_representation": "IR_SUB" },
+      "MUL": { "ir_representation": "IR_MUL" },
+      "DIV": { "ir_representation": "IR_DIV" },
+      "MOD": { "ir_representation": "IR_MOD" }
+  },
+  "logical_operations": {
+      "AND": { "ir_representation": "IR_AND" },
+      "OR": { "ir_representation": "IR_OR" },
+      "XOR": { "ir_representation": "IR_XOR" },
+      "NOT": { "ir_representation": "IR_NOT" }
+  },
+  "comparison_operators": {
+      "EQU": { "ir_representation": "IR_EQU" },
+      "NEQ": { "ir_representation": "IR_NEQ" },
+      "LES": { "ir_representation": "IR_LES" },
+      "GRT": { "ir_representation": "IR_GRT" },
+      "LEQ": { "ir_representation": "IR_LEQ" },
+      "GEQ": { "ir_representation": "IR_GEQ" }
+  },
+  "move_operations": {
+      "MOV": { "ir_representation": "IR_MOV" },
+      "SWAP": { "ir_representation": "IR_SWAP" },
+      "INT_TO_REAL": { "ir_representation": "IR_INT_TO_REAL" },
+      "REAL_TO_INT": { "ir_representation": "IR_REAL_TO_INT" }
+  }
+}
