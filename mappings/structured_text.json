@@ -1,19 +1,59 @@
 {
-    "logical_operators": {
+  "logical_operators": {
       "AND": { "ir_representation": "ST_AND" },
       "OR": { "ir_representation": "ST_OR" },
+      "XOR": { "ir_representation": "ST_XOR" },
       "NOT": { "ir_representation": "ST_NOT" }
-    },
-    "comparison_operators": {
-  "=": { "ir_representation": "ST_EQ" },
-  "<": { "ir_representation": "ST_LT" },
-  ">": { "ir_representation": "ST_GT" },
-  "<=": { "ir_representation": "ST_LEQ" },
-  ">=": { "ir_representation": "ST_GEQ" }
-},
-    "timers": {
-      "TON": { "description": "On-Delay Timer", "ir_representation": "ST_TON" },
-      "TOF": { "description": "Off-Delay Timer", "ir_representation": "ST_TOF" }
-    }
+  },
+  "comparison_operators": {
+      "=": { "ir_representation": "ST_EQ" },
+      "<": { "ir_representation": "ST_LT" },
+      ">": { "ir_representation": "ST_GT" },
+      "<=": { "ir_representation": "ST_LEQ" },
+      ">=": { "ir_representation": "ST_GEQ" }
+  },
+  "timers": {
+      "TON": { "ir_representation": "ST_TON", "description": "On-Delay Timer" },
+      "TOF": { "ir_representation": "ST_TOF", "description": "Off-Delay Timer" },
+      "TP": { "ir_representation": "ST_TP", "description": "Pulse Timer" }
+  },
+  "counters": {
+      "CTU": { "ir_representation": "ST_CTU", "description": "Counter Up" },
+      "CTD": { "ir_representation": "ST_CTD", "description": "Counter Down" },
+      "CTUD": { "ir_representation": "ST_CTUD", "description": "Counter Up-Down" }
+  },
+  "math_functions": {
+      "ABS": { "ir_representation": "ST_ABS" },
+      "SQRT": { "ir_representation": "ST_SQRT" },
+      "LN": { "ir_representation": "ST_LN" },
+      "LOG": { "ir_representation": "ST_LOG" },
+      "EXP": { "ir_representation": "ST_EXP" },
+      "EXPT": { "ir_representation": "ST_EXPT" },
+      "SIN": { "ir_representation": "ST_SIN" },
+      "COS": { "ir_representation": "ST_COS" },
+      "TAN": { "ir_representation": "ST_TAN" },
+      "ASIN": { "ir_representation": "ST_ASIN" },
+      "ACOS": { "ir_representation": "ST_ACOS" },
+      "ATAN": { "ir_representation": "ST_ATAN" },
+      "MOD": { "ir_representation": "ST_MOD" }
+  },
+  "bitwise_operations": {
+      "SHL": { "ir_representation": "ST_SHL" },
+      "SHR": { "ir_representation": "ST_SHR" },
+      "ROR": { "ir_representation": "ST_ROR" },
+      "ROL": { "ir_representation": "ST_ROL" }
+  },
+  "selection_functions": {
+      "SEL": { "ir_representation": "ST_SEL" },
+      "MUX": { "ir_representation": "ST_MUX" },
+      "MAX": { "ir_representation": "ST_MAX" },
+      "MIN": { "ir_representation": "ST_MIN" },
+      "LIMIT": { "ir_representation": "ST_LIMIT" }
+  },
+  "data_manipulation": {
+      "MOVE": { "ir_representation": "ST_MOVE" },
+      "SWAP": { "ir_representation": "ST_SWAP" },
+      "INT_TO_REAL": { "ir_representation": "ST_INT_TO_REAL" },
+      "REAL_TO_INT": { "ir_representation": "ST_REAL_TO_INT" }
   }
-  
+}
