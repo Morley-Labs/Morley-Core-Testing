@@ -1,0 +1,10 @@
+{-# INLINABLE validate #-}
+validate :: BuiltinData -> BuiltinData -> ScriptContext -> Bool
+validate _ _ ctx =
+    let txInfo = scriptContextTxInfo ctx
+    in traceIfFalse "Condition failed: X1 AND X2" (X1 && X2)
+    && traceIfFalse "Timer expired" (Timer1 >= 5000)
+
+script :: PlutusScript
+script = mkValidatorScript $$(PlutusTx.compile [|| validate ||])
+

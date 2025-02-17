@@ -1,0 +1,19 @@
+{
+  "type": "LadderCore IR",
+  "instructions": [
+    { "type": "INPUT", "args": ["X1"] },
+    { "type": "INPUT", "args": ["X2"] },
+    { "type": "AND", "args": ["X1", "X2"] },
+    { "type": "OUTPUT", "args": ["Y1"] }
+  ],
+  "timers": {
+    "Timer1": { "type": "TON", "duration": "5S" }
+  },
+  "counters": {},
+  "math_operations": {},
+  "comparators": {},
+  "set_reset_latches": {},
+  "jump_instructions": {},
+  "function_blocks": {}
+}
+

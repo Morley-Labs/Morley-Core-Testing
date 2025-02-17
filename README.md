@@ -38,17 +38,32 @@ Morley-IR/
 ```
 
 ## Usage
-### **Convert Ladder Logic into IR**
-Once the IR processing scripts are finalized, usage instructions will be provided. Expected functionality:
-```sh
+# Convert Ladder Logic (.ll) into Morley-IR
+```
 python src/ll_to_ir.py input.ll
 ```
-
+# Compile Morley-IR into Plutus Haskell
+```
+python src/compile_ir_to_plutus.py input.ir
+```
+# Reverse Compile Plutus back into Ladder Logic
+```
+python src/reverse_compiler.py input.plutus
+```
 ### **Validate IR Structure**
 ```sh
 python src/validate_ir.py input.ir
 ```
-
+# Example Workflow
+```
+python src/ll_to_ir.py examples/sample.ll > output.ir
+```
+```
+python src/compile_ir_to_plutus.py output.ir > output.plutus
+```
+```
+python src/reverse_compiler.py output.plutus > output_reversed.ll
+```
 ---
 
 ## Next Steps
