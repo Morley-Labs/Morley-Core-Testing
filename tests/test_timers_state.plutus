@@ -1,0 +1,8 @@
+traceIfFalse "Condition 1 failed" (X1 && X2)
+traceIfFalse "Condition 2 failed" (Y1 || Y2)
+
+timer Timer1 5000ms
+if Timer1.DN then output = 1
+
+let state = state + 1
+let result = A + B

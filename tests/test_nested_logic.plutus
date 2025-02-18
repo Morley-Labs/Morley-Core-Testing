@@ -1,0 +1,1 @@
+traceIfFalse "Condition 1 failed" ((X1 && X2) || (Y1 && (Z1 || Z2)))
