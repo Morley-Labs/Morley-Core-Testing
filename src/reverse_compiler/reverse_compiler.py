@@ -68,7 +68,16 @@ def parse_plutus_script(plutus_code):
                if f"TON TimerX, {slot_value}ms" not in ladder_logic_lines:
                   ladder_logic_lines.append(f"TON TimerX, {slot_value}ms")
                   print(f"Reverse Compiled Immediate Anchoring: TON TimerX, {slot_value}ms")
-
+               
+        # Detect and Handle Verifiable Hash Anchoring
+        if "Verifiable Hash" in plutus_code:
+            hash_match = re.search(r'-- Verifiable Hash: (\w+)', plutus_code)
+            if hash_match:
+               hash_value = hash_match.group(1)
+               # Preserve Verifiable Hash as a comment in Ladder Logic
+               ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
+               print(f"Reverse Compiled Verifiable Hash: {hash_value}")
+     
         # Detect mustValidateIn (Plutus time constraint)
         # Prevent redundant processing if immediate anchoring has already detected mustValidateIn
         if "mustValidateIn" in plutus_code and any("TON TimerX" in line for line in ladder_logic_lines):
