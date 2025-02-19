@@ -64,6 +64,13 @@ def parse_plutus_script(plutus_code):
            conditions.append((f"TON {timer_name}", f"TON {timer_name}, 5000ms"))
            print(f"✅ Detected mustValidateIn: {line} → TON {timer_name}, 5000ms")  # Debugging
            continue
+        # Detect and extract timestamp from Plutus datums
+        timestamp_match = re.search(r'{"timestamp":\s*(\d+)}', line)
+        if timestamp_match:
+           timestamp_value = timestamp_match.group(1)
+           conditions.append((f"MOV timestamp", f"MOV timestamp = {timestamp_value}"))
+           print(f"✅ Detected Timestamp Datum: {line} → MOV timestamp = {timestamp_value}")  # Debugging
+           continue
 
 
         print(f"🔍 Processing line: {repr(line)}")  # Debugging

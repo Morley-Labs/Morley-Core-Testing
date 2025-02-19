@@ -21,6 +21,14 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
             args = " && ".join(instr["args"]) if op_type == "and" else " || ".join(instr["args"])
             script_lines.append(f'traceIfFalse "Condition {i} failed: {op_type}" ({args})')
 
+    # Handle Slot-Based Time Logic (L1 Validation)
+    if "format" in ir_data and ir_data["format"] == "slot-based":
+        if "timestamp" in ir_data:
+           slot_constraint = f"slot{ir_data['timestamp']}"
+           script_lines.append(f'mustValidateIn (from {slot_constraint})')
+           print(f"Slot-Based Time Constraint Applied: mustValidateIn (from {slot_constraint})")
+
+
     # Handle Timers
     if "timers" in ir_data:
         for timer_name, timer_data in ir_data["timers"].items():
