@@ -56,6 +56,15 @@ def parse_plutus_script(plutus_code):
         line = line.strip()
         if not line:
             continue
+        # Detect mustValidateIn (Plutus time constraint)
+        validate_match = re.search(r'mustValidateIn \(from (slot\d+)\)', line)
+        if validate_match:
+           slot = validate_match.group(1)
+           timer_name = f"Timer{len(conditions) + 1}"  # Assign a generic timer name
+           conditions.append((f"TON {timer_name}", f"TON {timer_name}, 5000ms"))
+           print(f"✅ Detected mustValidateIn: {line} → TON {timer_name}, 5000ms")  # Debugging
+           continue
+
 
         print(f"🔍 Processing line: {repr(line)}")  # Debugging
 
