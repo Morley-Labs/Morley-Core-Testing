@@ -25,8 +25,9 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
     if "format" in ir_data and ir_data["format"] == "slot-based":
         if "timestamp" in ir_data:
            slot_constraint = f"slot{ir_data['timestamp']}"
-           script_lines.append(f'mustValidateIn (from {slot_constraint})')
-           print(f"Slot-Based Time Constraint Applied: mustValidateIn (from {slot_constraint})")
+           if f'mustValidateIn (from {slot_constraint})' not in script_lines:
+              script_lines.append(f'mustValidateIn (from {slot_constraint})')
+              print(f"Slot-Based Time Constraint Applied: mustValidateIn (from {slot_constraint})")
 
 
     # Handle Timers
