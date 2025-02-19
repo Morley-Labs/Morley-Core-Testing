@@ -41,41 +41,8 @@ def load_instruction_mappings():
 
 instruction_set, ladder_logic, structured_text = load_instruction_mappings()
 
+
 def parse_plutus_script(plutus_code):
-    lines = plutus_code.split("\n")
-
-    for line in lines:
-        line = line.strip()
-        print(f"🔍 Processing line: {repr(line)}")  # Print raw line before regex
-
-        # Debugging: Detect if the line contains 'timer'
-        if "timer" in line:
-            print(f"⏳ Timer detected before regex: {repr(line)}")  # Debugging
-
-        # Extract timer operations (TON, TOF)
-        timer_match = re.search(r'timer\s+(\w+)\s+(\d+)ms', line)
-        if timer_match:
-            timer_name, duration = timer_match.groups()
-            print(f"✅ Detected Timer: {timer_name}, Duration: {duration}ms")  # Debugging
-            continue
-        else:
-            if "timer" in line:
-                print(f"⚠️ Timer regex failed on: {repr(line)}")  # Debugging
-
-    # Read the file directly again, to make sure it's not being modified elsewhere
-    with open("tests/test_timers_state.plutus", "r") as f:
-        correct_script = f.read()
-
-    print("📝 Full script content being processed (Direct File Read):")
-    print(repr(correct_script))  # Print EXACTLY how Python reads the file
-
-    if "timer" not in correct_script:
-        print("❌ Timer line is missing! The file might be getting modified or overwritten.")
-        exit()  # Force-stop execution
-
-    lines = correct_script.split("\n")
-
-
     """ Extract conditions, state updates, and logic from a Morley-specific Plutus script. """
     conditions = []
     state_changes = []
@@ -90,14 +57,14 @@ def parse_plutus_script(plutus_code):
         if not line:
             continue
 
-        print(f"Processing line: {line}")  # Debugging
+        print(f"🔍 Processing line: {repr(line)}")  # Debugging
 
         # Extract traceIfFalse conditions
         match = re.search(r'traceIfFalse \"(.*?)\" \((.*?)\)', line)
         if match:
             description, condition = match.groups()
             conditions.append((description, condition))
-            print(f"Detected Condition: {description} -> {condition}")  # Debugging
+            print(f"✅ Detected Condition: {description} -> {condition}")  # Debugging
             continue
 
         # Extract comparison conditions (e.g., if balance >= 100)
@@ -108,29 +75,27 @@ def parse_plutus_script(plutus_code):
             continue  
 
         # Extract timer operations (TON, TOF)
-        timer_match = re.search(r'timer (\w+) (\d+)ms', line)
+        timer_match = re.search(r'timer (\w+) (\d+)ms', line, re.IGNORECASE)
         if timer_match:
-           timer_name, duration = timer_match.groups()
-           conditions.append((f"TON {timer_name}", f"TON {timer_name}, {duration}ms"))
-           print(f"Detected Timer: {timer_name}, Duration: {duration}ms")  # Debugging
-           continue
+            timer_name, duration = timer_match.groups()
+            conditions.append((f"TON {timer_name}", f"TON {timer_name}, {duration}ms"))
+            print(f"✅ Detected Timer: {timer_name}, Duration: {duration}ms")  # Debugging
+            continue
 
         # Detect if a timer is being checked for "done" state
         timer_done_match = re.search(r'if (\w+)\.DN then output = (\d+)', line)
         if timer_done_match:
-           timer_name, output = timer_done_match.groups()
-           conditions.append((f"XIC {timer_name}.DN", f"OTE Output{output}"))
-           print(f"Detected Timer Done: {timer_name}.DN -> Output{output}")  # Debugging
-           continue
-
-
+            timer_name, output = timer_done_match.groups()
+            conditions.append((f"XIC {timer_name}.DN", f"OTE Output{output}"))
+            print(f"✅ Detected Timer Done: {timer_name}.DN -> Output{output}")  # Debugging
+            continue
 
         # Extract state updates
         state_match = re.search(r'let (\w+) = (\w+) ([+\-*/]) (\w+)', line)
         if state_match:
             var, left, operator, right = state_match.groups()
             state_changes.append(f"{var} = {left} {operator} {right}")
-            print(f"Detected State Change: {var} = {left} {operator} {right}")  # Debugging
+            print(f"✅ Detected State Change: {var} = {left} {operator} {right}")  # Debugging
             continue
 
         # Extract arithmetic operations
@@ -153,35 +118,25 @@ def parse_plutus_script(plutus_code):
             operation, label = control_match.groups()
             control_flow.append(f"{operation} {label}")
 
+    print(f"🔎 Parsed Conditions: {conditions}")
+    print(f"🔎 Parsed State Changes: {state_changes}")
+    print(f"🔎 Parsed Arithmetic: {arithmetic_operations}")
+    print(f"🔎 Parsed Bitwise: {bitwise_operations}")
+    print(f"🔎 Parsed Control Flow: {control_flow}")
+
     return conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow
+
 
 def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow):
     """ Convert extracted Plutus conditions, state updates, arithmetic, bitwise, and control flow operations to Ladder Logic. """
     ladder_logic_code = []
 
-    # Convert Plutus conditions to Ladder Logic XIC/OTE instructions
-    def parse_plutus_script(plutus_code):
-        lines = plutus_code.split("\n")  # Ensure correct line splitting
-
-    for line in lines:
-        line = line.strip()
-        print(f"🔍 Processing line: {repr(line)}")  # Print each line exactly
-
-        # Debugging: Detect if the line contains 'timer'
-        if "timer" in line:
-            print(f"⏳ Timer detected before regex: {repr(line)}")  # Debugging
-
-        # Extract timer operations (TON, TOF)
-        timer_match = re.search(r'timer\s+(\w+)\s+(\d+)ms', line)
-        if timer_match:
-            timer_name, duration = timer_match.groups()
-            print(f"✅ Detected Timer: {timer_name}, Duration: {duration}ms")  # Debugging
-            continue
-        else:
-            if "timer" in line:
-                print(f"⚠️ Timer regex failed on: {repr(line)}")  # Debugging
-
-
+    # Process conditions (XIC, XIO, TON, TOF)
+    for condition in conditions:
+        description, logic = condition
+        if "timer" in description.lower():
+            print(f"⏳ Timer detected before regex: {repr(condition)}")  # Debugging
+        ladder_logic_code.append(f"{description}: {logic}")
 
     # Convert state updates to MOV instructions
     for update in state_changes:
@@ -198,13 +153,23 @@ def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bi
     # Convert control flow operations
     for operation in control_flow:
         ladder_logic_code.append(operation)
+        print(f"🛠 Ladder Logic Output (Before Return):\n{ladder_logic_code}")
 
-    return "\n".join(ladder_logic_code)
+    return "\n".join(ladder_logic_code) if ladder_logic_code else "⚠️ No Ladder Logic Generated"
+
 
 def reverse_compile_plutus_to_ll(plutus_code):
     """ Full pipeline: Parse Plutus -> Convert to Ladder Logic. """
     conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow = parse_plutus_script(plutus_code)
+
+    print(f"🔎 Conditions Sent to Ladder Logic: {conditions}")
+    print(f"🔎 State Changes Sent to Ladder Logic: {state_updates}")
+    print(f"🔎 Arithmetic Operations Sent to Ladder Logic: {arithmetic_operations}")
+    print(f"🔎 Bitwise Operations Sent to Ladder Logic: {bitwise_operations}")
+    print(f"🔎 Control Flow Sent to Ladder Logic: {control_flow}")
+
     ladder_logic_code = convert_to_ladder_logic(conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow)
+
     return ladder_logic_code
 
 if __name__ == "__main__":
