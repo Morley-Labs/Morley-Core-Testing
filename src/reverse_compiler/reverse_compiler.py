@@ -75,8 +75,9 @@ def parse_plutus_script(plutus_code):
             if hash_match:
                hash_value = hash_match.group(1)
                # Preserve Verifiable Hash as a comment in Ladder Logic
-               ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
-               print(f"Reverse Compiled Verifiable Hash: {hash_value}")
+               if f"// Verifiable Hash: {hash_value}" not in ladder_logic_lines:  # Check to avoid duplicates
+                   ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
+                   print(f"Reverse Compiled Verifiable Hash: {hash_value}")
      
         # Detect mustValidateIn (Plutus time constraint)
         # Prevent redundant processing if immediate anchoring has already detected mustValidateIn
