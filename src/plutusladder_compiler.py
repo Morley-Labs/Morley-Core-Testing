@@ -24,8 +24,9 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
     # Handle Timers
     if "timers" in ir_data:
         for timer_name, timer_data in ir_data["timers"].items():
+            print(f"Compiling Timer: {timer_name}, Duration: {timer_data['duration']}ms → mustValidateIn (from slotX)")
             if timer_data["type"] == "TON":
-                script_lines.append(f'traceIfFalse "Timer {timer_name} expired" ({timer_name} >= {timer_data["duration"]})')
+               script_lines.append(f'mustValidateIn (from slotX) -- Timer {timer_name} enforced')
             elif timer_data["type"] == "TOF":
                 script_lines.append(f'traceIfFalse "Timer {timer_name} off delay expired" ({timer_name} <= {timer_data["duration"]})')
 
@@ -35,8 +36,8 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
             if counter_data["type"] == "CTU":
                 script_lines.append(f'traceIfFalse "Counter {counter_name} exceeded" ({counter_name} >= {counter_data["preset"]})')
             elif counter_data["type"] == "CTD":
-                script_lines.append(f'traceIfFalse "Counter {counter_name} decreased below preset" ({counter_name} <= {counter_data["preset"]})')
-
+                script_lines.append(f'traceIfFalse "Counter {counter_name} decreased below preset" ({counter_name} <= {counter_data["preset"]})')if timer_data["type"] == "TON":
+   
     # Final output
     if not script_lines:
         raise ValueError("Invalid IR format")
