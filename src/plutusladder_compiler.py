@@ -41,6 +41,20 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
        elif ir_data["anchoring"] == "finality":
             script_lines.append(f'-- Timestamp {ir_data["timestamp"]} stored for finality anchoring')
             print(f"Finality Anchoring Deferred: Timestamp {ir_data["timestamp"]} recorded for later submission")
+    
+    import hashlib  # Required for Blake2b hash generation
+
+    # Handle Verifiable Hash Anchoring in Plutus
+    if "format" in ir_data and ir_data["format"] == "verifiable":
+        if "timestamp" in ir_data:
+           # Generate Blake2b hash for the timestamp
+           timestamp_value = str(ir_data["timestamp"]).encode('utf-8')
+           blake2b_hash = hashlib.blake2b(timestamp_value, digest_size=32).hexdigest()
+
+        # Store the hash in the Plutus script
+        script_lines.append(f'mustValidateIn (from slot{ir_data["timestamp"]})')
+        script_lines.append(f'-- Verifiable Hash: {blake2b_hash}')
+        print(f"Verifiable Hash Anchoring Applied: mustValidateIn (from slot{ir_data['timestamp']}) with Hash: {blake2b_hash}")
 
     # Handle Timers
     if "timers" in ir_data:
