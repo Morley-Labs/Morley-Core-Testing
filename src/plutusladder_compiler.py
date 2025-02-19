@@ -36,7 +36,7 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
             if counter_data["type"] == "CTU":
                 script_lines.append(f'traceIfFalse "Counter {counter_name} exceeded" ({counter_name} >= {counter_data["preset"]})')
             elif counter_data["type"] == "CTD":
-                script_lines.append(f'traceIfFalse "Counter {counter_name} decreased below preset" ({counter_name} <= {counter_data["preset"]})')if timer_data["type"] == "TON":
+                script_lines.append(f'traceIfFalse "Counter {counter_name} decreased below preset" ({counter_name} <= {counter_data["preset"]})')
    
     # Final output
     if not script_lines:
