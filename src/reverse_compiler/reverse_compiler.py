@@ -49,6 +49,7 @@ def parse_plutus_script(plutus_code):
     arithmetic_operations = []
     bitwise_operations = []
     control_flow = []  
+    ladder_logic_lines = []
 
     lines = plutus_code.split("\n")
     
@@ -56,31 +57,46 @@ def parse_plutus_script(plutus_code):
         line = line.strip()
         if not line:
             continue
+
+        # Handle Anchored Timestamps in Plutus Scripts
+        if "mustValidateIn" in plutus_code:
+            slot_match = re.search(r"mustValidateIn \(from slot(\d+)\)", plutus_code)
+            if slot_match:
+               slot_value = slot_match.group(1)
+               
+               # Only add the timer if it's not already in ladder_logic_lines
+               if f"TON TimerX, {slot_value}ms" not in ladder_logic_lines:
+                  ladder_logic_lines.append(f"TON TimerX, {slot_value}ms")
+                  print(f"Reverse Compiled Immediate Anchoring: TON TimerX, {slot_value}ms")
+
         # Detect mustValidateIn (Plutus time constraint)
-        validate_match = re.search(r'mustValidateIn \(from (slot\d+)\)', line)
-        if validate_match:
-           slot = validate_match.group(1)
-           timer_name = f"Timer{len(conditions) + 1}"  # Assign a generic timer name
-           conditions.append((f"TON {timer_name}", f"TON {timer_name}, 5000ms"))
-           print(f"✅ Detected mustValidateIn: {line} → TON {timer_name}, 5000ms")  # Debugging
-           continue
+        # Prevent redundant processing if immediate anchoring has already detected mustValidateIn
+        if "mustValidateIn" in plutus_code and any("TON TimerX" in line for line in ladder_logic_lines):
+            print(f"Skipping duplicate mustValidateIn detection: {line}")
+        else:
+            validate_match = re.search(r'mustValidateIn \(from (slot\d+)\)', line)
+            if validate_match:
+               slot = validate_match.group(1)
+               timer_name = f"Timer{len(conditions) + 1}"  # Assign a generic timer name
+               conditions.append((f"TON {timer_name}", f"TON {timer_name}, 5000ms"))
+               print(f"Detected mustValidateIn: {line} → TON {timer_name}, 5000ms")  # Debugging
+
         # Detect and extract timestamp from Plutus datums
         timestamp_match = re.search(r'{"timestamp":\s*(\d+)}', line)
         if timestamp_match:
            timestamp_value = timestamp_match.group(1)
            conditions.append((f"MOV timestamp", f"MOV timestamp = {timestamp_value}"))
-           print(f"✅ Detected Timestamp Datum: {line} → MOV timestamp = {timestamp_value}")  # Debugging
+           print(f"Detected Timestamp Datum: {line} → MOV timestamp = {timestamp_value}")  # Debugging
            continue
 
-
-        print(f"🔍 Processing line: {repr(line)}")  # Debugging
+        print(f"Processing line: {repr(line)}")  # Debugging
 
         # Extract traceIfFalse conditions
         match = re.search(r'traceIfFalse \"(.*?)\" \((.*?)\)', line)
         if match:
             description, condition = match.groups()
             conditions.append((description, condition))
-            print(f"✅ Detected Condition: {description} -> {condition}")  # Debugging
+            print(f"Detected Condition: {description} -> {condition}")  # Debugging
             continue
 
         # Extract comparison conditions (e.g., if balance >= 100)
@@ -95,7 +111,7 @@ def parse_plutus_script(plutus_code):
         if timer_match:
             timer_name, duration = timer_match.groups()
             conditions.append((f"TON {timer_name}", f"TON {timer_name}, {duration}ms"))
-            print(f"✅ Detected Timer: {timer_name}, Duration: {duration}ms")  # Debugging
+            print(f"Detected Timer: {timer_name}, Duration: {duration}ms")  # Debugging
             continue
 
         # Detect if a timer is being checked for "done" state
@@ -103,7 +119,7 @@ def parse_plutus_script(plutus_code):
         if timer_done_match:
             timer_name, output = timer_done_match.groups()
             conditions.append((f"XIC {timer_name}.DN", f"OTE Output{output}"))
-            print(f"✅ Detected Timer Done: {timer_name}.DN -> Output{output}")  # Debugging
+            print(f"Detected Timer Done: {timer_name}.DN -> Output{output}")  # Debugging
             continue
 
         # Extract state updates
@@ -111,7 +127,7 @@ def parse_plutus_script(plutus_code):
         if state_match:
             var, left, operator, right = state_match.groups()
             state_changes.append(f"{var} = {left} {operator} {right}")
-            print(f"✅ Detected State Change: {var} = {left} {operator} {right}")  # Debugging
+            print(f"Detected State Change: {var} = {left} {operator} {right}")  # Debugging
             continue
 
         # Extract arithmetic operations
@@ -134,14 +150,20 @@ def parse_plutus_script(plutus_code):
             operation, label = control_match.groups()
             control_flow.append(f"{operation} {label}")
 
-    print(f"🔎 Parsed Conditions: {conditions}")
-    print(f"🔎 Parsed State Changes: {state_changes}")
-    print(f"🔎 Parsed Arithmetic: {arithmetic_operations}")
-    print(f"🔎 Parsed Bitwise: {bitwise_operations}")
-    print(f"🔎 Parsed Control Flow: {control_flow}")
+    print(f"Parsed Conditions: {conditions}")
+    print(f"Parsed State Changes: {state_changes}")
+    print(f"Parsed Arithmetic: {arithmetic_operations}")
+    print(f"Parsed Bitwise: {bitwise_operations}")
+    print(f"Parsed Control Flow: {control_flow}")
 
-    return conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow
-
+    return (
+    "\n".join(ladder_logic_lines) if ladder_logic_lines else "No Ladder Logic Generated",
+    conditions,
+    state_changes,
+    arithmetic_operations,
+    bitwise_operations,
+    control_flow
+)
 
 def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow):
     """ Convert extracted Plutus conditions, state updates, arithmetic, bitwise, and control flow operations to Ladder Logic. """
@@ -151,7 +173,7 @@ def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bi
     for condition in conditions:
         description, logic = condition
         if "timer" in description.lower():
-            print(f"⏳ Timer detected before regex: {repr(condition)}")  # Debugging
+            print(f"Timer detected before regex: {repr(condition)}")  # Debugging
         ladder_logic_code.append(f"{description}: {logic}")
 
     # Convert state updates to MOV instructions
@@ -169,22 +191,24 @@ def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bi
     # Convert control flow operations
     for operation in control_flow:
         ladder_logic_code.append(operation)
-        print(f"🛠 Ladder Logic Output (Before Return):\n{ladder_logic_code}")
+        print(f"Ladder Logic Output (Before Return):\n{ladder_logic_code}")
 
-    return "\n".join(ladder_logic_code) if ladder_logic_code else "⚠️ No Ladder Logic Generated"
+    return "\n".join(ladder_logic_code) if ladder_logic_code else "No Ladder Logic Generated"
 
 
 def reverse_compile_plutus_to_ll(plutus_code):
     """ Full pipeline: Parse Plutus -> Convert to Ladder Logic. """
-    conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow = parse_plutus_script(plutus_code)
+    ladder_logic_output, conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow = parse_plutus_script(plutus_code)
 
-    print(f"🔎 Conditions Sent to Ladder Logic: {conditions}")
-    print(f"🔎 State Changes Sent to Ladder Logic: {state_updates}")
-    print(f"🔎 Arithmetic Operations Sent to Ladder Logic: {arithmetic_operations}")
-    print(f"🔎 Bitwise Operations Sent to Ladder Logic: {bitwise_operations}")
-    print(f"🔎 Control Flow Sent to Ladder Logic: {control_flow}")
 
-    ladder_logic_code = convert_to_ladder_logic(conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow)
+    print(f"Conditions Sent to Ladder Logic: {conditions}")
+    print(f"State Changes Sent to Ladder Logic: {state_updates}")
+    print(f"Arithmetic Operations Sent to Ladder Logic: {arithmetic_operations}")
+    print(f"Bitwise Operations Sent to Ladder Logic: {bitwise_operations}")
+    print(f"Control Flow Sent to Ladder Logic: {control_flow}")
+
+    flattened_output = "".join(ladder_logic_output) if isinstance(ladder_logic_output, list) else ladder_logic_output
+    ladder_logic_code = flattened_output + "\n" + convert_to_ladder_logic(conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow)
 
     return ladder_logic_code
 
