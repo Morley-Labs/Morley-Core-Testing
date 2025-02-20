@@ -2,7 +2,12 @@ import unittest
 import json
 from src.plutusladder_compiler import compile_ir_to_plutus_haskell_enhanced
 from src.reverse_compiler.reverse_compiler import reverse_compile_plutus_to_ll
-from src.ir_converter import ladder_logic_to_ir, structured_text_to_ir, ir_to_ladder_logic, ir_to_structured_text
+from src.validator_ir_transform import (
+    ladder_logic_to_ir,
+    structured_text_to_ir,
+    ir_to_ladder_logic,
+    ir_to_structured_text
+)
 
 class TestMorleyCompilationFlow(unittest.TestCase):
     
