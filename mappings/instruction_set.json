@@ -61,6 +61,13 @@
       "MAX": { "ir_representation": "IR_MAX" },
       "MIN": { "ir_representation": "IR_MIN" },
       "LIMIT": { "ir_representation": "IR_LIMIT" }
-  }
+  },
+  "jump_subroutine": {
+  "JMP": { "ir_representation": "IR_JMP" },
+  "LBL": { "ir_representation": "IR_LBL" },
+  "JSR": { "ir_representation": "IR_JSR" },
+  "RET": { "ir_representation": "IR_RET" }
+}
+
 }
 

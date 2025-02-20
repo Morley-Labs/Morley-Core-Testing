@@ -41,7 +41,12 @@
       "SHL": { "ir_representation": "ST_SHL" },
       "SHR": { "ir_representation": "ST_SHR" },
       "ROR": { "ir_representation": "ST_ROR" },
-      "ROL": { "ir_representation": "ST_ROL" }
+      "ROL": { "ir_representation": "ST_ROL" },
+      "AND_BIT": { "ir_representation": "ST_AND_BIT" },
+      "OR_BIT": { "ir_representation": "ST_OR_BIT" },
+      "XOR_BIT": { "ir_representation": "ST_XOR_BIT" },
+      "NOT_BIT": { "ir_representation": "ST_NOT_BIT" }
+
   },
   "selection_functions": {
       "SEL": { "ir_representation": "ST_SEL" },
@@ -51,7 +56,7 @@
       "LIMIT": { "ir_representation": "ST_LIMIT" }
   },
   "data_manipulation": {
-      "MOVE": { "ir_representation": "ST_MOVE" },
+      "MOVE": { "ir_representation": "ST_MOV" },
       "SWAP": { "ir_representation": "ST_SWAP" },
       "INT_TO_REAL": { "ir_representation": "ST_INT_TO_REAL" },
       "REAL_TO_INT": { "ir_representation": "ST_REAL_TO_INT" }

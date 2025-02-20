@@ -240,6 +240,11 @@
             "symbol": "SQRT",
             "ir_representation": "LL_SQRT",
             "description": "Square Root Function"
-        }
+        },
+        "LN": { "symbol": "LN", "ir_representation": "LL_LN", "description": "Natural Logarithm" },
+        "ASIN": { "symbol": "ASIN", "ir_representation": "LL_ASIN", "description": "Arcsine Function" },
+        "ACOS": { "symbol": "ACOS", "ir_representation": "LL_ACOS", "description": "Arccosine Function" },
+        "ATAN": { "symbol": "ATAN", "ir_representation": "LL_ATAN", "description": "Arctangent Function" }
+
     }
 }
