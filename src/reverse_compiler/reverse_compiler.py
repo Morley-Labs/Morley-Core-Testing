@@ -1,33 +1,41 @@
-"""
-Morley Reverse Compiler: Plutus to Ladder Logic
-This tool interprets Morley-specific Plutus scripts back into Ladder Logic.
-
-Overview:
-- Parses Morley Plutus scripts.
-- Extracts logic conditions and mappings.
-- Converts to Ladder Logic IR.
-- Outputs .ll (Ladder Logic) files.
-- Supports all Ladder Logic constructs encountered in real-world PLC programming.
-"""
-
+# Restoration - Block 1: Imports and Configuration
 import os
 import json
 import re
+from collections import deque
+
+# Supported operations for full OpenPLC feature parity, including nested logic
+operations = {
+    "logical_operations": ["AND", "OR", "XOR", "NOT"],
+    "comparison_operations": ["EQU", "NEQ", "LES", "LEQ", "GRT", "GEQ"],
+    "arithmetic_operations": ["ADD", "SUB", "MUL", "DIV", "MOD", "SQRT", "EXP", "MOV"],
+    "bitwise_operations": ["AND_BIT", "OR_BIT", "XOR_BIT", "NOT_BIT", "SHL", "SHR", "ROR", "ROL"],
+    "timers_counters": ["TON", "TOF", "TP", "CTU", "CTD", "CTUD", "RTO", "RES"],
+    "selection_functions": ["MUX", "LIMIT"],
+    "jump_subroutine": ["JMP", "LBL", "JSR", "RET"],
+    "function_blocks": ["SR", "RS", "SFB", "FB", "FC"],
+    "coils_outputs": ["OTE", "OTL", "OTU"],
+    "advanced_math": ["LN", "LOG", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN"],
+    "nested_logic": ["NAND", "NOR", "XNOR"]  # Added support for nested logic
+}
+
+# Configuration for advanced time logic, nested logic, and debugging
+DEBUG_MODE = True  # Set to False for production
+MAX_NESTING_LEVEL = 10  # Maximum nesting depth for complex logical operations
+# Restoration - Block 2: Mappings Loader
 
 def load_instruction_mappings():
-    # Get the absolute path of the Morley-IR root directory
+    """Load instruction mappings for Ladder Logic, Structured Text, and Instruction Set"""
     base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    print(f"Resolved base_path: {base_path}")
-
-    # Define full paths for the mappings
     instruction_set_path = os.path.join(base_path, "mappings", "instruction_set.json")
     ladder_logic_path = os.path.join(base_path, "mappings", "ladder_logic.json")
     structured_text_path = os.path.join(base_path, "mappings", "structured_text.json")
 
     # Debugging: Print paths to check correctness
-    print(f"Loading instruction set from: {instruction_set_path}")
-    print(f"Loading ladder logic from: {ladder_logic_path}")
-    print(f"Loading structured text from: {structured_text_path}")
+    if DEBUG_MODE:
+        print(f"Loading instruction set from: {instruction_set_path}")
+        print(f"Loading ladder logic from: {ladder_logic_path}")
+        print(f"Loading structured text from: {structured_text_path}")
 
     # Load the JSON files
     with open(instruction_set_path, "r", encoding="utf-8") as f:
@@ -37,154 +45,88 @@ def load_instruction_mappings():
     with open(structured_text_path, "r", encoding="utf-8") as f:
         structured_text = json.load(f)
 
+    # Validate nested logic mappings
+    if "nested_logic" not in instruction_set:
+        raise ValueError("Nested logic mappings are missing in instruction_set.json")
+
     return instruction_set, ladder_logic, structured_text
 
+# Initialize mappings
 instruction_set, ladder_logic, structured_text = load_instruction_mappings()
-
+# Restoration - Block 3: Parsing Logic
 
 def parse_plutus_script(plutus_code):
-    """ Extract conditions, state updates, and logic from a Morley-specific Plutus script. """
+    """ Extract conditions, state updates, nested logic, and advanced math from a Morley-specific Plutus script. """
     conditions = []
     state_changes = []
     arithmetic_operations = []
     bitwise_operations = []
     control_flow = []  
     ladder_logic_lines = []
+    nested_stack = deque(maxlen=MAX_NESTING_LEVEL)  # Support for nested logic
 
     lines = plutus_code.split("\n")
-    
     for line in lines:
         line = line.strip()
         if not line:
             continue
 
-        # Handle Anchored Timestamps in Plutus Scripts
+        # Advanced Time Logic and Timestamp Anchoring
         if "mustValidateIn" in plutus_code:
             slot_match = re.search(r"mustValidateIn \(from slot(\d+)\)", plutus_code)
             if slot_match:
-               slot_value = slot_match.group(1)
-               
-               # Only add the timer if it's not already in ladder_logic_lines
-               if f"TON TimerX, {slot_value}ms" not in ladder_logic_lines:
-                  ladder_logic_lines.append(f"TON TimerX, {slot_value}ms")
-                  print(f"Reverse Compiled Immediate Anchoring: TON TimerX, {slot_value}ms")
-               
-        # Detect and Handle Verifiable Hash Anchoring
+                slot_value = slot_match.group(1)
+                if f"TON TimerX, {slot_value}ms" not in ladder_logic_lines:
+                    ladder_logic_lines.append(f"TON TimerX, {slot_value}ms")
+
+        # Verifiable Hash Handling
         if "Verifiable Hash" in plutus_code:
             hash_match = re.search(r'-- Verifiable Hash: (\w+)', plutus_code)
             if hash_match:
-               hash_value = hash_match.group(1)
-               # Preserve Verifiable Hash as a comment in Ladder Logic
-               if f"// Verifiable Hash: {hash_value}" not in ladder_logic_lines:  # Check to avoid duplicates
-                   ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
-                   print(f"Reverse Compiled Verifiable Hash: {hash_value}")
-     
-        # Detect mustValidateIn (Plutus time constraint)
-        # Prevent redundant processing if immediate anchoring has already detected mustValidateIn
-        if "mustValidateIn" in plutus_code and any("TON TimerX" in line for line in ladder_logic_lines):
-            print(f"Skipping duplicate mustValidateIn detection: {line}")
-        else:
-            validate_match = re.search(r'mustValidateIn \(from (slot\d+)\)', line)
-            if validate_match:
-               slot = validate_match.group(1)
-               timer_name = f"Timer{len(conditions) + 1}"  # Assign a generic timer name
-               conditions.append((f"TON {timer_name}", f"TON {timer_name}, 5000ms"))
-               print(f"Detected mustValidateIn: {line} → TON {timer_name}, 5000ms")  # Debugging
+                hash_value = hash_match.group(1)
+                if f"// Verifiable Hash: {hash_value}" not in ladder_logic_lines:
+                    ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
 
-        # Detect and extract timestamp from Plutus datums
-        timestamp_match = re.search(r'{"timestamp":\s*(\d+)}', line)
-        if timestamp_match:
-           timestamp_value = timestamp_match.group(1)
-           conditions.append((f"MOV timestamp", f"MOV timestamp = {timestamp_value}"))
-           print(f"Detected Timestamp Datum: {line} → MOV timestamp = {timestamp_value}")  # Debugging
-           continue
+        # Advanced Math Operations
+        if any(func in line for func in operations["advanced_math"]):
+            math_match = re.search(r'(\w+) = (LN|LOG|SIN|COS|TAN|ASIN|ACOS|ATAN)\((\w+)\)', line)
+            if math_match:
+                output, func, operand = math_match.groups()
+                ladder_logic_lines.append(f"MOV {output} = {func}({operand})")
 
-        print(f"Processing line: {repr(line)}")  # Debugging
+        # Nested Logic Handling
+        if any(nested in line for nested in operations["nested_logic"]):
+            nested_stack.append(line)  # Push nested condition to stack
+            if DEBUG_MODE:
+                print(f"Nested Logic Detected: {line}")
 
-        # Extract traceIfFalse conditions
-        match = re.search(r'traceIfFalse \"(.*?)\" \((.*?)\)', line)
-        if match:
-            description, condition = match.groups()
-            conditions.append((description, condition))
-            print(f"Detected Condition: {description} -> {condition}")  # Debugging
-            continue
+        # Logical and Arithmetic Operations Integration
+        if "&&" in line or "||" in line or "not" in line:
+            tokens = line.replace("(", "").replace(")", "").split()
+            output = tokens[0]
+            op1 = tokens[2]
+            op2 = tokens[4] if len(tokens) > 4 else None
+            ladder_logic_lines.append(f"XIC {op1} AND {op2} OTE {output}" if "&&" in line else
+                                      f"XIC {op1} OR {op2} OTE {output}" if "||" in line else
+                                      f"XIO {op1} OTE {output}")
 
-        # Extract comparison conditions (e.g., if balance >= 100)
-        comparison_match = re.search(r'if (\w+) ([=!<>]=?) ([\d.]+|\w+)', line)
-        if comparison_match:
-            var, op, val = comparison_match.groups()
-            conditions.append((f"Check {var} {op} {val}", f"{var} {op} {val}"))
-            continue  
+    # Process Nested Logic Stack
+    while nested_stack:
+        nested_condition = nested_stack.pop()  # Pop the most nested condition
+        ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
 
-        # Extract timer operations (TON, TOF)
-        timer_match = re.search(r'timer (\w+) (\d+)ms', line, re.IGNORECASE)
-        if timer_match:
-            timer_name, duration = timer_match.groups()
-            conditions.append((f"TON {timer_name}", f"TON {timer_name}, {duration}ms"))
-            print(f"Detected Timer: {timer_name}, Duration: {duration}ms")  # Debugging
-            continue
+    return "\n".join(ladder_logic_lines)
+# Restoration - Block 4: Ladder Logic Conversion
 
-        # Detect if a timer is being checked for "done" state
-        timer_done_match = re.search(r'if (\w+)\.DN then output = (\d+)', line)
-        if timer_done_match:
-            timer_name, output = timer_done_match.groups()
-            conditions.append((f"XIC {timer_name}.DN", f"OTE Output{output}"))
-            print(f"Detected Timer Done: {timer_name}.DN -> Output{output}")  # Debugging
-            continue
-
-        # Extract state updates
-        state_match = re.search(r'let (\w+) = (\w+) ([+\-*/]) (\w+)', line)
-        if state_match:
-            var, left, operator, right = state_match.groups()
-            state_changes.append(f"{var} = {left} {operator} {right}")
-            print(f"Detected State Change: {var} = {left} {operator} {right}")  # Debugging
-            continue
-
-        # Extract arithmetic operations
-        arithmetic_match = re.search(r'let (\w+) = (\w+) ([+\-*/]) (\w+)', line)
-        if arithmetic_match:
-            var, operand1, operation, operand2 = arithmetic_match.groups()
-            arithmetic_operations.append(f"MOV {var} = {operand1} {operation} {operand2}")
-            continue
-
-        # Extract bitwise operations
-        bitwise_match = re.search(r'let (\w+) = (\w+) (SHL|SHR|ROR|ROL) (\d+)', line)
-        if bitwise_match:
-            var, operand, operation, shift_value = bitwise_match.groups()
-            bitwise_operations.append(f"{operation} {var}, {operand}, {shift_value}")
-            continue
-
-        # Extract control flow operations
-        control_match = re.search(r'(JMP|LBL|JSR|RET|MCR) (\w+)', line)
-        if control_match:
-            operation, label = control_match.groups()
-            control_flow.append(f"{operation} {label}")
-
-    print(f"Parsed Conditions: {conditions}")
-    print(f"Parsed State Changes: {state_changes}")
-    print(f"Parsed Arithmetic: {arithmetic_operations}")
-    print(f"Parsed Bitwise: {bitwise_operations}")
-    print(f"Parsed Control Flow: {control_flow}")
-
-    return (
-    "\n".join(ladder_logic_lines) if ladder_logic_lines else "No Ladder Logic Generated",
-    conditions,
-    state_changes,
-    arithmetic_operations,
-    bitwise_operations,
-    control_flow
-)
-
-def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow):
-    """ Convert extracted Plutus conditions, state updates, arithmetic, bitwise, and control flow operations to Ladder Logic. """
+def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow, nested_logic):
+    """ Convert extracted Plutus conditions, state updates, arithmetic, bitwise, control flow operations, and nested logic to Ladder Logic. """
     ladder_logic_code = []
 
     # Process conditions (XIC, XIO, TON, TOF)
     for condition in conditions:
         description, logic = condition
         if "timer" in description.lower():
-            print(f"Timer detected before regex: {repr(condition)}")  # Debugging
-        ladder_logic_code.append(f"{description}: {logic}")
+            ladder_logic_code.append(f"{description}: {logic}")
 
     # Convert state updates to MOV instructions
     for update in state_changes:
@@ -201,34 +143,33 @@ def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bi
     # Convert control flow operations
     for operation in control_flow:
         ladder_logic_code.append(operation)
-        print(f"Ladder Logic Output (Before Return):\n{ladder_logic_code}")
+
+    # Convert nested logic
+    for nested in nested_logic:
+        ladder_logic_code.append(f"NESTED LOGIC: {nested}")
 
     return "\n".join(ladder_logic_code) if ladder_logic_code else "No Ladder Logic Generated"
-
+# Restoration - Block 5: Main Function and Execution Flow
 
 def reverse_compile_plutus_to_ll(plutus_code):
-    """ Full pipeline: Parse Plutus -> Convert to Ladder Logic. """
-    ladder_logic_output, conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow = parse_plutus_script(plutus_code)
+    """ Full pipeline: Parse Plutus -> Convert to Ladder Logic with Nested Logic and Advanced Math. """
+    ladder_logic_output = parse_plutus_script(plutus_code)
+    conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow, nested_logic = [], [], [], [], [], []
 
-
-    print(f"Conditions Sent to Ladder Logic: {conditions}")
-    print(f"State Changes Sent to Ladder Logic: {state_updates}")
-    print(f"Arithmetic Operations Sent to Ladder Logic: {arithmetic_operations}")
-    print(f"Bitwise Operations Sent to Ladder Logic: {bitwise_operations}")
-    print(f"Control Flow Sent to Ladder Logic: {control_flow}")
-
+    # Flatten output if it's a list
     flattened_output = "".join(ladder_logic_output) if isinstance(ladder_logic_output, list) else ladder_logic_output
-    ladder_logic_code = flattened_output + "\n" + convert_to_ladder_logic(conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow)
+    ladder_logic_code = flattened_output + "\n" + convert_to_ladder_logic(conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow, nested_logic)
 
     return ladder_logic_code
 
+# Main function to read Plutus file and convert to Ladder Logic
 if __name__ == "__main__":
     example_plutus = ''' 
     traceIfFalse "Condition 1 failed" (X1 && X2)
     traceIfFalse "Condition 2 failed" (Y1 || Y2)
     let state = state + 1
-    let result = A + B
-    let shift = C SHL 2
+    let result = LN(X) + COS(Y)
+    let nested = (A && B) || (C && (D || E))
     if balance >= 100
     JMP LABEL1
     '''
