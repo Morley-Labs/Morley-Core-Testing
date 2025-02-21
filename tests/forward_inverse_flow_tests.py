@@ -1,6 +1,11 @@
-import unittest
-import json
-from src.plutusladder_compiler import compile_ir_to_plutus_haskell_enhanced
+import sys
+import os
+
+# Add the root directory to sys.path so Python can find 'src'
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# Now import as usual
+from src.plutusladder_compiler import ll_to_plutus as compile_ir_to_plutus_haskell_enhanced
 from src.reverse_compiler.reverse_compiler import reverse_compile_plutus_to_ll
 from src.validator_ir_transform import (
     ladder_logic_to_ir,
@@ -8,6 +13,9 @@ from src.validator_ir_transform import (
     ir_to_ladder_logic,
     ir_to_structured_text
 )
+
+import unittest
+import json
 
 class TestMorleyCompilationFlow(unittest.TestCase):
     

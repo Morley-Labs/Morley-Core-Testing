@@ -87,6 +87,11 @@
             "symbol": "MOD",
             "ir_representation": "LL_MOD",
             "description": "Modulus (Remainder)"
+        },
+        "MOV": {
+            "symbol": "MOV",
+            "ir_representation": "LL_MOV",
+            "description": "Move Data"
         }
     },
     "logical_operations": {
@@ -167,11 +172,6 @@
         }
     },
     "move_operations": {
-        "MOV": {
-            "symbol": "MOV",
-            "ir_representation": "LL_MOV",
-            "description": "Move Data"
-        },
         "SWAP": {
             "symbol": "SWAP",
             "ir_representation": "LL_SWAP",

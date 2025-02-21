@@ -38,6 +38,26 @@ def validate_structure(ir_data):
     """
     errors = []
 
+def ladder_logic_to_ir(ladder_logic_data):
+    """Convert Ladder Logic JSON to IR format."""
+    # Placeholder logic—expand as needed
+    ir_data = {"instructions": ladder_logic_data.get("instructions", [])}
+    return ir_data
+
+def structured_text_to_ir(structured_text_data):
+    """Convert Structured Text JSON to IR format."""
+    # Placeholder logic—expand as needed
+    ir_data = {"instructions": structured_text_data.get("instructions", [])}
+    return ir_data
+
+def ir_to_ladder_logic(ir_data):
+    """Convert IR back to Ladder Logic JSON."""
+    return {"instructions": ir_data.get("instructions", [])}
+
+def ir_to_structured_text(ir_data):
+    """Convert IR back to Structured Text JSON."""
+    return {"instructions": ir_data.get("instructions", [])}
+
     # Check for Required Keys
     for key in required_keys:
         if key not in ir_data:

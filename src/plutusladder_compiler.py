@@ -49,7 +49,8 @@ def validate_ir(ir_data):
         if op_type not in operations["logical_operations"] + operations["arithmetic_operations"] + \
                         operations["bitwise_operations"] + operations["timers_counters"] + \
                         operations["selection_functions"] + operations["jump_subroutine"] + \
-                        operations["function_blocks"] + operations["coils_outputs"]:
+                        operations["function_blocks"] + operations["coils_outputs"] and \
+            op_type not in ["XIC", "XIO", "OTE"]:
             errors.append(f"Invalid operation type: {op_type}")
 
     # Check for proper nesting
@@ -97,8 +98,9 @@ def handle_logical_arithmetic_operations(ir_data):
         args = instruction.get("args", [])
 
         # Logical Operations
-        if op_type in operations["logical_operations"] + operations["nested_logic"]:
-            logical_operations.append({"type": op_type, "args": args})
+        if op_type in operations["logical_operations"] + operations["nested_logic"] or \
+        op_type in ["XIC", "XIO", "OTE"]:
+           logical_operations.append({"type": op_type, "args": args})
 
         # Arithmetic Operations
         elif op_type in operations["arithmetic_operations"]:
@@ -232,6 +234,7 @@ def ll_to_plutus(ladder_core_ir):
 
     # Step 2: Handle Logical and Arithmetic Operations
     ladder_core_ir = handle_logical_arithmetic_operations(ladder_core_ir)
+    print("[DEBUG] Full IR Data Before Validation:", ladder_core_ir)
     debug_log("[Compilation] Logical and Arithmetic Operations Processed")
 
     # Step 3: Handle Timers, Counters, and Function Blocks

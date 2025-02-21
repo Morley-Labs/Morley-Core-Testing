@@ -1,3 +1,8 @@
+import sys
+import os
+# Add the parent directory to sys.path so Python can find 'src'
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import unittest
 from src.reverse_compiler.reverse_compiler import reverse_compile_plutus_to_ll
 
@@ -13,9 +18,12 @@ class TestReverseCompiler(unittest.TestCase):
         '''
         
         expected_output = (
-            "XIC X1 && X2 OTE Condition 1 failed\n"
-            "XIC Y1 || Y2 OTE Condition 2 failed"
-        )
+    "XIC X1 AND X2 OTE Condition 1 failed\n"
+    "XIC Y1 OR Y2 OTE Condition 2 failed"
+)
+
+
+        
 
         self.assertEqual(reverse_compile_plutus_to_ll(plutus_script), expected_output)
 
@@ -51,7 +59,7 @@ class TestReverseCompiler(unittest.TestCase):
         let result = A + B
         '''
         
-        expected_output = "MOV result = A + B"
+        expected_output = "ADD result = A + B"
 
         self.assertEqual(reverse_compile_plutus_to_ll(plutus_script), expected_output)
 

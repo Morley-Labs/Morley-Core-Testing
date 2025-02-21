@@ -4,6 +4,43 @@ import json
 import re
 from collections import deque
 
+# Centralized Mappings for Reverse Compiler
+logical_mappings = {
+    "&&": "AND",
+    "||": "OR"
+}
+
+arithmetic_mappings = {
+    "+": "ADD",
+    "-": "SUB",
+    "*": "MUL",
+    "/": "DIV",
+    "%": "MOD"
+}
+
+comparison_mappings = {
+    ">=": "GEQ",
+    "<=": "LEQ",
+    "==": "EQU",
+    "!=": "NEQ",
+    ">": "GRT",
+    "<": "LES"
+}
+
+state_update_mappings = {
+    "+=": "ADD",
+    "-=": "SUB",
+    "*=": "MUL",
+    "/=": "DIV"
+}
+
+bitwise_mappings = {
+    "&": "AND_BIT",
+    "|": "OR_BIT",
+    "^": "XOR_BIT",
+    "~": "NOT_BIT"
+}
+
 # Supported operations for full OpenPLC feature parity, including nested logic
 operations = {
     "logical_operations": ["AND", "OR", "XOR", "NOT"],
@@ -55,6 +92,25 @@ def load_instruction_mappings():
 instruction_set, ladder_logic, structured_text = load_instruction_mappings()
 # Restoration - Block 3: Parsing Logic
 
+# Comparison Operator Mappings (Global Scope)
+comparison_mappings = {
+    ">=": "GEQ",
+    "<=": "LEQ",
+    "==": "EQU",
+    "!=": "NEQ",
+    ">": "GRT",
+    "<": "LES"
+}
+
+# Now this is globally accessible
+def map_comparison_operator(expression):
+    for op, ladder_op in comparison_mappings.items():
+        if op in expression:
+            parts = expression.split(op)
+            return f"XIC {parts[0].strip()} {ladder_op} {parts[1].strip()} OTE"
+    return "No Ladder Logic Generated"
+
+
 def parse_plutus_script(plutus_code):
     """ Extract conditions, state updates, nested logic, and advanced math from a Morley-specific Plutus script. """
     conditions = []
@@ -70,6 +126,12 @@ def parse_plutus_script(plutus_code):
         line = line.strip()
         if not line:
             continue
+        
+        # Match traceIfFalse for conditions
+        condition_match = re.search(r'traceIfFalse "(.+?)" \((.+?)\)', line)
+        if condition_match:
+           message, condition = condition_match.groups()
+           ladder_logic_lines.append(f"XIC {condition} OTE {message}")
 
         # Advanced Time Logic and Timestamp Anchoring
         if "mustValidateIn" in plutus_code:
@@ -99,7 +161,7 @@ def parse_plutus_script(plutus_code):
             nested_stack.append(line)  # Push nested condition to stack
             if DEBUG_MODE:
                 print(f"Nested Logic Detected: {line}")
-
+      
         # Logical and Arithmetic Operations Integration
         if "&&" in line or "||" in line or "not" in line:
             tokens = line.replace("(", "").replace(")", "").split()
@@ -114,9 +176,13 @@ def parse_plutus_script(plutus_code):
     while nested_stack:
         nested_condition = nested_stack.pop()  # Pop the most nested condition
         ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
+        print("[DEBUG] Ladder Logic Output (Before Flatten):", ladder_logic_lines)
 
     return "\n".join(ladder_logic_lines)
 # Restoration - Block 4: Ladder Logic Conversion
+
+    if any(op in expression for op in comparison_mappings.keys()):
+       return map_comparison_operator(expression)
 
 def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow, nested_logic):
     """ Convert extracted Plutus conditions, state updates, arithmetic, bitwise, control flow operations, and nested logic to Ladder Logic. """
@@ -159,7 +225,7 @@ def reverse_compile_plutus_to_ll(plutus_code):
     # Flatten output if it's a list
     flattened_output = "".join(ladder_logic_output) if isinstance(ladder_logic_output, list) else ladder_logic_output
     ladder_logic_code = flattened_output + "\n" + convert_to_ladder_logic(conditions, state_updates, arithmetic_operations, bitwise_operations, control_flow, nested_logic)
-
+    print("[DEBUG] Ladder Logic Output:", ladder_logic_output)
     return ladder_logic_code
 
 # Main function to read Plutus file and convert to Ladder Logic
