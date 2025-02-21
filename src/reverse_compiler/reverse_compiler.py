@@ -326,7 +326,8 @@ def convert_to_ladder_logic(
 
     # Process conditions (XIC, XIO, TON, TOF)
     for condition in conditions:
-        description, logic = condition
+        description = condition[0] if len(condition) > 0 else "Undefined"
+        logic = condition[1] if len(condition) > 1 else "Undefined"
         if "timer" in description.lower():
             ladder_logic_code.append(f"{description}: {logic}")
 
