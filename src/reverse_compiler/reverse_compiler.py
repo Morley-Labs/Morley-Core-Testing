@@ -102,14 +102,21 @@ comparison_mappings = {
     "<": "LES"
 }
 
-# Now this is globally accessible
 def map_comparison_operator(expression):
+    """ Maps comparison operators using centralized mappings """
     for op, ladder_op in comparison_mappings.items():
         if op in expression:
             parts = expression.split(op)
-            return f"XIC {parts[0].strip()} {ladder_op} {parts[1].strip()} OTE"
-    return "No Ladder Logic Generated"
+            left_operand = parts[0].strip()
+            right_operand = parts[1].strip()
+            return f"XIC {left_operand} {ladder_op} {right_operand} OTE"
+    return expression
 
+def map_operations(expression, mappings):
+    """ Utility to map operations using predefined mappings """
+    for key, value in mappings.items():
+        expression = expression.replace(key, value)
+    return expression
 
 def parse_plutus_script(plutus_code):
     """ Extract conditions, state updates, nested logic, and advanced math from a Morley-specific Plutus script. """
@@ -163,26 +170,34 @@ def parse_plutus_script(plutus_code):
                 print(f"Nested Logic Detected: {line}")
       
         # Logical and Arithmetic Operations Integration
-        if "&&" in line or "||" in line or "not" in line:
-            tokens = line.replace("(", "").replace(")", "").split()
-            output = tokens[0]
-            op1 = tokens[2]
-            op2 = tokens[4] if len(tokens) > 4 else None
-            ladder_logic_lines.append(f"XIC {op1} AND {op2} OTE {output}" if "&&" in line else
-                                      f"XIC {op1} OR {op2} OTE {output}" if "||" in line else
-                                      f"XIO {op1} OTE {output}")
+        line = map_operations(line, logical_mappings)
+        line = map_operations(line, arithmetic_mappings)
+        line = map_operations(line, bitwise_mappings)
+
+        # Re-evaluate tokens after mappings are applied
+        tokens = line.replace("(", "").replace(")", "").split()
+        output = tokens[0]
+        op1 = tokens[2]
+        op2 = tokens[4] if len(tokens) > 4 else None
+
+        # Append to ladder logic lines with mapped operations
+        ladder_logic_lines.append(
+           f"XIC {op1} AND {op2} OTE {output}" if "AND" in line else
+           f"XIC {op1} OR {op2} OTE {output}" if "OR" in line else
+           f"XIO {op1} OTE {output}"
+        )
 
     # Process Nested Logic Stack
     while nested_stack:
         nested_condition = nested_stack.pop()  # Pop the most nested condition
         ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
         print("[DEBUG] Ladder Logic Output (Before Flatten):", ladder_logic_lines)
-
+    
+    # Apply Comparison Mappings
+    if any(op in line for op in comparison_mappings.keys()):
+       line = map_comparison_operator(line)
+       
     return "\n".join(ladder_logic_lines)
-# Restoration - Block 4: Ladder Logic Conversion
-
-    if any(op in expression for op in comparison_mappings.keys()):
-       return map_comparison_operator(expression)
 
 def convert_to_ladder_logic(conditions, state_changes, arithmetic_operations, bitwise_operations, control_flow, nested_logic):
     """ Convert extracted Plutus conditions, state updates, arithmetic, bitwise, control flow operations, and nested logic to Ladder Logic. """
