@@ -252,5 +252,14 @@
         "ACOS": { "symbol": "ACOS", "ir_representation": "LL_ACOS", "description": "Arccosine Function" },
         "ATAN": { "symbol": "ATAN", "ir_representation": "LL_ATAN", "description": "Arctangent Function" }
 
-    }
+    },
+        "control_flow": {
+    "IF": { "symbol": "IF", "description": "Start of IF block" },
+    "ELSE": { "symbol": "ELSE", "description": "Start of ELSE block" },
+    "ENDIF": { "symbol": "ENDIF", "description": "End of IF or ELSE block" },
+    "WHILE": { "symbol": "WHILE", "description": "Start of WHILE loop" },
+    "ENDWHILE": { "symbol": "ENDWHILE", "description": "End of WHILE loop" },
+    "FOR": { "symbol": "FOR", "description": "Start of FOR loop" },
+    "ENDFOR": { "symbol": "ENDFOR", "description": "End of FOR loop" }
+     }
 }
