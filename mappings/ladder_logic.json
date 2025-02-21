@@ -63,43 +63,20 @@
         }
     },
     "arithmetic": {
-        "ADD": {
-            "symbol": "ADD",
-            "ir_representation": "LL_ADD",
-            "description": "Addition"
-        },
-        "SUB": {
-            "symbol": "SUB",
-            "ir_representation": "LL_SUB",
-            "description": "Subtraction"
-        },
-        "MUL": {
-            "symbol": "MUL",
-            "ir_representation": "LL_MUL",
-            "description": "Multiplication"
-        },
-        "DIV": {
-            "symbol": "DIV",
-            "ir_representation": "LL_DIV",
-            "description": "Division"
-        },
-        "MOD": {
-            "symbol": "MOD",
-            "ir_representation": "LL_MOD",
-            "description": "Modulus (Remainder)"
-        },
-        "MOV": {
-            "symbol": "MOV",
-            "ir_representation": "LL_MOV",
-            "description": "Move Data"
-        },
-        "state_updates": {
+    "ADD": "ADD {output} = {op1} + {op2}",
+    "SUB": "SUB {output} = {op1} - {op2}",
+    "MUL": "MUL {output} = {op1} * {op2}",
+    "DIV": "DIV {output} = {op1} / {op2}",
+    "MOD": "MOD {output} = {op1} % {op2}",
+    "MOV": "MOV {output} = {op1}"
+    },
+    "state_updates": {
     "ADD": { "symbol": "ADD", "description": "Addition Assignment (+=)" },
     "SUB": { "symbol": "SUB", "description": "Subtraction Assignment (-=)" },
     "MUL": { "symbol": "MUL", "description": "Multiplication Assignment (*=)" },
     "DIV": { "symbol": "DIV", "description": "Division Assignment (/=)" }
-        }
-    },
+        },
+        
         "logical_operations": {
         "AND": {
             "symbol": "AND",

@@ -4,47 +4,16 @@ import json
 import re
 from collections import deque
 
-# Centralized Mappings for Reverse Compiler
-logical_mappings = {"&&": "AND", "||": "OR"}
 
-arithmetic_mappings = {"+": "ADD", "-": "SUB", "*": "MUL", "/": "DIV", "%": "MOD"}
-
-comparison_mappings = {
-    ">=": "GEQ",
-    "<=": "LEQ",
-    "==": "EQU",
-    "!=": "NEQ",
-    ">": "GRT",
-    "<": "LES",
-}
-
-state_update_mappings = {"+=": "ADD", "-=": "SUB", "*=": "MUL", "/=": "DIV"}
-
-bitwise_mappings = {"&": "AND_BIT", "|": "OR_BIT", "^": "XOR_BIT", "~": "NOT_BIT"}
-
-# Supported operations for full OpenPLC feature parity, including nested logic
-operations = {
-    "logical_operations": ["AND", "OR", "XOR", "NOT"],
-    "comparison_operations": ["EQU", "NEQ", "LES", "LEQ", "GRT", "GEQ"],
-    "arithmetic_operations": ["ADD", "SUB", "MUL", "DIV", "MOD", "SQRT", "EXP", "MOV"],
-    "bitwise_operations": [
-        "AND_BIT",
-        "OR_BIT",
-        "XOR_BIT",
-        "NOT_BIT",
-        "SHL",
-        "SHR",
-        "ROR",
-        "ROL",
-    ],
-    "timers_counters": ["TON", "TOF", "TP", "CTU", "CTD", "CTUD", "RTO", "RES"],
-    "selection_functions": ["MUX", "LIMIT"],
-    "jump_subroutine": ["JMP", "LBL", "JSR", "RET"],
-    "function_blocks": ["SR", "RS", "SFB", "FB", "FC"],
-    "coils_outputs": ["OTE", "OTL", "OTU"],
-    "advanced_math": ["LN", "LOG", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN"],
-    "nested_logic": ["NAND", "NOR", "XNOR"],  # Added support for nested logic
-}
+# Utility to flatten nested mappings
+def flatten_mappings(mapping):
+    flat_mapping = {}
+    for key, value in mapping.items():
+        if isinstance(value, dict) and "symbol" in value:
+            flat_mapping[key] = value["symbol"]
+        elif isinstance(value, str):
+            flat_mapping[key] = value
+    return flat_mapping
 
 # Configuration for advanced time logic, nested logic, and debugging
 DEBUG_MODE = True  # Set to False for production
@@ -73,26 +42,44 @@ def load_instruction_mappings():
     with open(structured_text_path, "r", encoding="utf-8") as f:
         structured_text = json.load(f)
 
-    # Validate nested logic mappings
-    if "nested_logic" not in instruction_set:
-        raise ValueError("Nested logic mappings are missing in instruction_set.json")
-
     return instruction_set, ladder_logic, structured_text
 
+    # Supported operations for full OpenPLC feature parity, including nested logic
+operations = {
+        "logical_operations": ["AND", "OR", "XOR", "NOT"],
+        "comparison_operations": ["EQU", "NEQ", "LES", "LEQ", "GRT", "GEQ"],
+        "arithmetic_operations": ["ADD", "SUB", "MUL", "DIV", "MOD", "SQRT", "EXP", "MOV"],
+        "bitwise_operations": [
+        "AND_BIT",
+        "OR_BIT",
+        "XOR_BIT",
+        "NOT_BIT",
+        "SHL",
+        "SHR",
+        "ROR",
+        "ROL",
+        ],
+        "timers_counters": ["TON", "TOF", "TP", "CTU", "CTD", "CTUD", "RTO", "RES"],
+        "selection_functions": ["MUX", "LIMIT"],
+        "jump_subroutine": ["JMP", "LBL", "JSR", "RET"],
+        "function_blocks": ["SR", "RS", "SFB", "FB", "FC"],
+        "coils_outputs": ["OTE", "OTL", "OTU"],
+        "advanced_math": ["LN", "LOG", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN"],
+        "nested_logic": ["NAND", "NOR", "XNOR"],  # Added support for nested logic
+    }
 
 # Initialize mappings
 instruction_set, ladder_logic, structured_text = load_instruction_mappings()
 # Restoration - Block 3: Parsing Logic
 
-# Comparison Operator Mappings (Global Scope)
-comparison_mappings = {
-    ">=": "GEQ",
-    "<=": "LEQ",
-    "==": "EQU",
-    "!=": "NEQ",
-    ">": "GRT",
-    "<": "LES",
-}
+
+# Validate nested logic mappings
+if "nested_logic" not in instruction_set:
+    raise ValueError("Nested logic mappings are missing in instruction_set.json")
+
+
+comparison_mappings = flatten_mappings(ladder_logic.get("comparison_operators", {}))
+
 control_flow_mappings = {
     "if": "IF",
     "else": "ELSE",
@@ -103,6 +90,13 @@ control_flow_mappings = {
     "endfor": "ENDFOR",
 }
 
+logical_mappings = {"&&": "AND", "||": "OR"}
+
+arithmetic_mappings = flatten_mappings(ladder_logic.get("arithmetic", {}))
+
+bitwise_mappings = flatten_mappings(ladder_logic.get("bitwise_operations", {}))
+
+state_update_mappings = {"+=": "ADD", "-=": "SUB", "*=": "MUL", "/=": "DIV"}
 
 def map_comparison_operator(expression):
     """Maps comparison operators using centralized mappings"""
@@ -138,84 +132,17 @@ def parse_plutus_script(plutus_code):
         if not line:
             continue
 
-        # Match traceIfFalse for conditions
-        condition_match = re.search(r'traceIfFalse "(.+?)" \((.+?)\)', line)
-        if condition_match:
-            message, condition = condition_match.groups()
-            ladder_logic_lines.append(f"XIC {condition} OTE {message}")
-
-        # Advanced Time Logic and Timestamp Anchoring
-        if "mustValidateIn" in plutus_code:
-            slot_match = re.search(r"mustValidateIn \(from slot(\d+)\)", plutus_code)
-            if slot_match:
-                slot_value = slot_match.group(1)
-                if f"TON TimerX, {slot_value}ms" not in ladder_logic_lines:
-                    ladder_logic_lines.append(f"TON TimerX, {slot_value}ms")
-
-        # Verifiable Hash Handling
-        if "Verifiable Hash" in plutus_code:
-            hash_match = re.search(r"-- Verifiable Hash: (\w+)", plutus_code)
-            if hash_match:
-                hash_value = hash_match.group(1)
-                if f"// Verifiable Hash: {hash_value}" not in ladder_logic_lines:
-                    ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
-
-        # Advanced Math Operations
-        if any(func in line for func in operations["advanced_math"]):
-            math_match = re.search(
-                r"(\w+) = (LN|LOG|SIN|COS|TAN|ASIN|ACOS|ATAN)\((\w+)\)", line
-            )
-            if math_match:
-                output, func, operand = math_match.groups()
-                ladder_logic_lines.append(f"MOV {output} = {func}({operand})")
-
-        # Nested Logic Handling
-        if any(nested in line for nested in operations["nested_logic"]):
-            nested_stack.append(line)  # Push nested condition to stack
-            ladder_logic_lines.append(f"NESTED LOGIC: {line}")  # Track in ladder logic
-            control_flow.append(line)  # Track in control flow
-            if DEBUG_MODE:
-                print(f"Nested Logic Detected: {line}")
-
         # Tokenize and Initialize
         tokens = line.replace("(", "").replace(")", "").split()
         output = tokens[0]
         op1 = tokens[2] if len(tokens) > 2 else None
         op2 = tokens[4] if len(tokens) > 4 else None
 
-        # Centralized and Ordered Mapping Flow
-        for mapping in [
-            logical_mappings,
-            comparison_mappings,
-            arithmetic_mappings,
-            state_update_mappings,
-            bitwise_mappings,
-            control_flow_mappings
-        ]:
-            line = map_operations(line, mapping)
-            tokens = line.replace("(", "").replace(")", "").split()  # Re-evaluate tokens
-
-            # Track Mapped Operations
-            if mapping == logical_mappings:
-                conditions.append(line)
-            elif mapping == comparison_mappings:
-                conditions.append(line)  # Comparison ops are also conditions
-            elif mapping == arithmetic_mappings:
-                arithmetic_operations.append(line)
-            elif mapping == state_update_mappings:
-                state_changes.append(line)
-            elif mapping == bitwise_mappings:
-                bitwise_operations.append(line)
-            elif mapping == control_flow_mappings:
-                control_flow.append(line)
-
-            # Append to Ladder Logic Lines
-            ladder_logic_lines.append(
-                f"XIC {op1} AND {op2} OTE {output}" if "AND" in line else
-                f"XIC {op1} OR {op2} OTE {output}" if "OR" in line else
-                f"XIC {op1} {op2} OTE {output}" if "XIC" in line else
-                f"XIO {op1} OTE {output}"
-            )
+        # Match traceIfFalse for conditions
+        condition_match = re.search(r'traceIfFalse "(.+?)" \((.+?)\)', line)
+        if condition_match:
+            message, condition = condition_match.groups()
+            ladder_logic_lines.append(f"XIC {condition} OTE {message}")
 
             # Apply Logical Mappings First
             if any(op in line for op in logical_mappings.keys()):
@@ -243,50 +170,94 @@ def parse_plutus_script(plutus_code):
                 conditions.append(line)
                 ladder_logic_lines.append(f"XIC {op1} {op2} OTE {output}")
 
-            # Apply Arithmetic Mappings
-            elif any(op in line for op in arithmetic_mappings.keys()):
-                line = map_operations(line, arithmetic_mappings)
-                tokens = line.replace("(", "").replace(")", "").split()  # Re-evaluate tokens
+            # Fix State Update Mappings
+            line = map_operations(line, state_update_mappings)
+            tokens = line.replace("(", "").replace(")", "").split()  # Re-evaluate tokens
+            output = tokens[0] if len(tokens) > 0 else None
+            op1 = tokens[2] if len(tokens) > 2 else None
+            state_changes.append(line)
+            ladder_logic_lines.append(f"MOV {output} = {op1}")
+
+        elif any(
+            op in arithmetic_mappings.keys() and op in line
+            for op in arithmetic_mappings.keys()
+        ):
+            tokens = line.replace("(", "").replace(")", "").split()
+            output = tokens[0] if len(tokens) > 0 else None
+            op1 = tokens[2] if len(tokens) > 2 else None
+            op2 = tokens[4] if len(tokens) > 4 else None
+
+            # Apply Bitwise Mappings
+            if bitwise_mappings and any(op in line for op in bitwise_mappings.keys()):
+                tokens = line.replace("(", "").replace(")", "").split()
+                output = tokens[0] if len(tokens) > 0 else None
                 op1 = tokens[2] if len(tokens) > 2 else None
                 op2 = tokens[4] if len(tokens) > 4 else None
-                arithmetic_operations.append(line)
-                ladder_logic_lines.append(
-             f"ADD {output} = {op1} + {op2}"
-            if "+" in line
-            else (
-            f"SUB {output} = {op1} - {op2}"
-            if "-" in line
-            else (
-                f"MUL {output} = {op1} * {op2}"
-                if "*" in line
-                else f"DIV {output} = {op1} / {op2}"
+
+                # Match the operation to the JSON mapping
+                for op, template in bitwise_mappings.items():
+                    if op in line:
+                        # Format and append to Ladder Logic lines
+                        ladder_logic_lines.append(
+                            f"{op.upper()} {output} = {op1} {op} {op2}"
+                        )
+
+        # Advanced Math Operations
+        if any(func in line for func in operations["advanced_math"]):
+            math_match = re.search(
+                r"(\w+) = (LN|LOG|SIN|COS|TAN|ASIN|ACOS|ATAN)\((\w+)\)", line
             )
-        )
-    )
+            if math_match:
+                output, func, operand = math_match.groups()
+                ladder_logic_lines.append(
+                    f"{func.upper()} {output} = {func}({operand})"
+                )
 
-            # Apply State Update Mappings
-            elif any(op in line for op in state_update_mappings.keys()):
-                line = map_operations(line, state_update_mappings)
-                tokens = line.replace("(", "").replace(")", "").split()  # Re-evaluate tokens
-                op1 = tokens[2] if len(tokens) > 2 else None
-                state_changes.append(line)
-                ladder_logic_lines.append(f"MOV {output} = {op1}")
-
-            # Apply Bitwise and Control Flow Mappings
-            elif any(op in line for op in bitwise_mappings.keys()):
-                line = map_operations(line, bitwise_mappings)
-                bitwise_operations.append(line)
-                ladder_logic_lines.append(line)
+            # Apply Control Flow Mappings
             elif any(op in line for op in control_flow_mappings.keys()):
                 line = map_operations(line, control_flow_mappings)
+                tokens = (
+                    line.replace("(", "").replace(")", "").split()
+                )  # Re-evaluate tokens
+                output = tokens[0] if len(tokens) > 0 else None
+                op1 = tokens[2] if len(tokens) > 2 else None
                 control_flow.append(line)
-                ladder_logic_lines.append(line)
+                ladder_logic_lines.append(f"{output} = {op1} CONTROL FLOW")
 
-        # Default to XIO if no operation type is identified
+                # Default to XIO if no operation type is identified
         else:
             ladder_logic_lines.append(f"XIO {op1} OTE {output}")
 
-        # Process Nested Logic Stack
+            # Track Mapped Operations
+            if mapping == logical_mappings:
+                conditions.append(line)
+            elif mapping == comparison_mappings:
+                conditions.append(line)  # Comparison ops are also conditions
+            elif mapping == arithmetic_mappings:
+                arithmetic_operations.append(line)
+            elif mapping == state_update_mappings:
+                state_changes.append(line)
+            elif mapping == bitwise_mappings:
+                bitwise_operations.append(line)
+            elif mapping == control_flow_mappings:
+                control_flow.append(line)
+
+                # Append to Ladder Logic Lines
+            ladder_logic_lines.append(
+                f"XIC {op1} AND {op2} OTE {output}"
+                if "AND" in line
+                else (
+                    f"XIC {op1} OR {op2} OTE {output}"
+                    if "OR" in line
+                    else (
+                        f"XIC {op1} {op2} OTE {output}"
+                        if "XIC" in line
+                        else f"XIO {op1} OTE {output}"
+                    )
+                )
+            )
+
+            # Process Nested Logic Stack
         while nested_stack:
             nested_condition = nested_stack.pop()  # Pop the most nested condition
             ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
@@ -297,9 +268,49 @@ def parse_plutus_script(plutus_code):
             line = map_operations(line, control_flow_mappings)
             control_flow.append(line)
 
-        # Apply Comparison Mappings
-        if any(op in line for op in comparison_mappings.keys()):
-            line = map_comparison_operator(line)
+        # Advanced Time Logic and Timestamp Anchoring
+        if "mustValidateIn" in plutus_code:
+            slot_match = re.search(r"mustValidateIn \(from slot(\d+)\)", plutus_code)
+            if slot_match:
+                slot_value = slot_match.group(1)
+                if f"TON TimerX, {slot_value}ms" not in ladder_logic_lines:
+                    ladder_logic_lines.append(f"TON TimerX, {slot_value}ms")
+
+        # Verifiable Hash Handling
+        if "Verifiable Hash" in plutus_code:
+            hash_match = re.search(r"-- Verifiable Hash: (\w+)", plutus_code)
+            if hash_match:
+                hash_value = hash_match.group(1)
+                if f"// Verifiable Hash: {hash_value}" not in ladder_logic_lines:
+                    ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
+
+        # Nested Logic Handling
+        if any(nested in line for nested in operations["nested_logic"]):
+            nested_stack.append(line)  # Push nested condition to stack
+            ladder_logic_lines.append(f"NESTED LOGIC: {line}")  # Track in ladder logic
+            control_flow.append(line)  # Track in control flow
+            if DEBUG_MODE:
+                print(f"Nested Logic Detected: {line}")
+
+        # Centralized and Ordered Mapping Flow
+        for mapping in [
+            logical_mappings,
+            comparison_mappings,
+            arithmetic_mappings,
+            state_update_mappings,
+            bitwise_mappings,
+            control_flow_mappings
+        ]:
+            line = map_operations(line, mapping)
+            tokens = line.replace("(", "").replace(")", "").split()  # Re-evaluate tokens
+
+            # Match the operation to the JSON mapping
+            for op, template in arithmetic_mappings.items():
+                if op in line:
+                    # Format and append to Ladder Logic lines
+                    ladder_logic_lines.append(
+                            template.format(output=output, op1=op1, op2=op2)
+                        )
 
         nested_list = list(nested_stack)
 
