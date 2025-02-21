@@ -172,6 +172,8 @@ def parse_plutus_script(plutus_code):
         # Nested Logic Handling
         if any(nested in line for nested in operations["nested_logic"]):
             nested_stack.append(line)  # Push nested condition to stack
+            ladder_logic_lines.append(f"NESTED LOGIC: {line}")  # Track in ladder logic
+            control_flow.append(line)  # Track in control flow
             if DEBUG_MODE:
                 print(f"Nested Logic Detected: {line}")
 
@@ -282,32 +284,25 @@ def parse_plutus_script(plutus_code):
 
         # Default to XIO if no operation type is identified
         else:
-           ladder_logic_lines.append(f"XIO {op1} OTE {output}")
+            ladder_logic_lines.append(f"XIO {op1} OTE {output}")
 
         # Process Nested Logic Stack
         while nested_stack:
-           nested_condition = nested_stack.pop()  # Pop the most nested condition
-           ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
-           print("[DEBUG] Ladder Logic Output (Before Flatten):", ladder_logic_lines)
+            nested_condition = nested_stack.pop()  # Pop the most nested condition
+            ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
+            ladder_logic_lines.append(nested_condition)  # Add the condition itself
+            control_flow.append(nested_condition)  # Track in control flow
+            print("[DEBUG] Ladder Logic Output (Before Flatten):", ladder_logic_lines)
 
-           line = map_operations(line, control_flow_mappings)
-           control_flow.append(line)
+            line = map_operations(line, control_flow_mappings)
+            control_flow.append(line)
 
         # Apply Comparison Mappings
         if any(op in line for op in comparison_mappings.keys()):
-           line = map_comparison_operator(line)
-        
-        return (
-            conditions,
-            state_changes,
-            arithmetic_operations,
-            bitwise_operations,
-            control_flow,
-            ladder_logic_lines
-    )
+            line = map_comparison_operator(line)
 
-
-        return "\n".join(ladder_logic_lines)
+        nested_list = list(nested_stack)
+        return "\n".join(nested_list)
 
 
 def convert_to_ladder_logic(
@@ -365,16 +360,16 @@ def reverse_compile_plutus_to_ll(plutus_code):
         arithmetic_operations,
         bitwise_operations,
         control_flow,
-        ladder_logic_lines,
+        nested_logic,
     ) = parse_plutus_script(plutus_code)
-    
+
     ladder_logic_code = convert_to_ladder_logic(
         conditions,
         state_changes,
         arithmetic_operations,
         bitwise_operations,
         control_flow,
-        nested_logic=[]
+        nested_logic
     )
 
     (
@@ -420,4 +415,4 @@ if __name__ == "__main__":
     JMP LABEL1
     """
     ll_output = reverse_compile_plutus_to_ll(example_plutus)
-    print("Generated Ladder Logic:\n", ll_output)
+    print(f"Generated Ladder Logic:\n{ll_output}")
