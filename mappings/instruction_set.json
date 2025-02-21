@@ -84,7 +84,14 @@
   "LBL": { "ir_representation": "IR_LBL" },
   "JSR": { "ir_representation": "IR_JSR" },
   "RET": { "ir_representation": "IR_RET" }
+  },
+  "state_updates": {
+    "ADD": { "ir_representation": "IR_ADD" },
+    "SUB": { "ir_representation": "IR_SUB" },
+    "MUL": { "ir_representation": "IR_MUL" },
+    "DIV": { "ir_representation": "IR_DIV" }
   }
+
 }
 
 
