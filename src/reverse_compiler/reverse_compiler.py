@@ -388,9 +388,9 @@ def reverse_compile_plutus_to_ll(plutus_code):
 
     # Flatten output if it's a list
     flattened_output = (
-        "".join(ladder_logic_output)
-        if isinstance(ladder_logic_output, list)
-        else ladder_logic_output
+        "".join(ladder_logic_code)
+        if isinstance(ladder_logic_code, list)
+        else ladder_logic_code
     )
     ladder_logic_code = (
         flattened_output
