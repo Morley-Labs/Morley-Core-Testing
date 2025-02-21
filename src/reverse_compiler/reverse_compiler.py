@@ -101,6 +101,15 @@ comparison_mappings = {
     ">": "GRT",
     "<": "LES"
 }
+control_flow_mappings = {
+    "if": "IF",
+    "else": "ELSE",
+    "endif": "ENDIF",
+    "while": "WHILE",
+    "endwhile": "ENDWHILE",
+    "for": "FOR",
+    "endfor": "ENDFOR"
+}
 
 def map_comparison_operator(expression):
     """ Maps comparison operators using centralized mappings """
@@ -171,8 +180,17 @@ def parse_plutus_script(plutus_code):
       
         # Logical and Arithmetic Operations Integration
         line = map_operations(line, logical_mappings)
+        conditions.append(line)
+
         line = map_operations(line, arithmetic_mappings)
+        arithmetic_operations.append(line)
+
         line = map_operations(line, bitwise_mappings)
+        bitwise_operations.append(line)
+        
+        line = map_operations(line, state_update_mappings)
+        state_changes.append(line)
+
 
         # Re-evaluate tokens after mappings are applied
         tokens = line.replace("(", "").replace(")", "").split()
@@ -192,7 +210,10 @@ def parse_plutus_script(plutus_code):
         nested_condition = nested_stack.pop()  # Pop the most nested condition
         ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
         print("[DEBUG] Ladder Logic Output (Before Flatten):", ladder_logic_lines)
-    
+
+    line = map_operations(line, control_flow_mappings)
+    control_flow.append(line)
+
     # Apply Comparison Mappings
     if any(op in line for op in comparison_mappings.keys()):
        line = map_comparison_operator(line)
