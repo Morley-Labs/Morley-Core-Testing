@@ -60,5 +60,15 @@
       "SWAP": { "ir_representation": "ST_SWAP" },
       "INT_TO_REAL": { "ir_representation": "ST_INT_TO_REAL" },
       "REAL_TO_INT": { "ir_representation": "ST_REAL_TO_INT" }
-  }
+  },
+  "control_flow": {
+    "IF": { "ir_representation": "ST_IF" },
+    "ELSE": { "ir_representation": "ST_ELSE" },
+    "ENDIF": { "ir_representation": "ST_ENDIF" },
+    "WHILE": { "ir_representation": "ST_WHILE" },
+    "ENDWHILE": { "ir_representation": "ST_ENDWHILE" },
+    "FOR": { "ir_representation": "ST_FOR" },
+    "ENDFOR": { "ir_representation": "ST_ENDFOR" }
+}
+
 }
