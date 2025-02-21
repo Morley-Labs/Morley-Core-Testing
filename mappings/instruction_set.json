@@ -90,6 +90,15 @@
     "SUB": { "ir_representation": "IR_SUB" },
     "MUL": { "ir_representation": "IR_MUL" },
     "DIV": { "ir_representation": "IR_DIV" }
+  },
+  "control_flow": {
+    "IF": { "ir_representation": "IR_IF" },
+    "ELSE": { "ir_representation": "IR_ELSE" },
+    "ENDIF": { "ir_representation": "IR_ENDIF" },
+    "WHILE": { "ir_representation": "IR_WHILE" },
+    "ENDWHILE": { "ir_representation": "IR_ENDWHILE" },
+    "FOR": { "ir_representation": "IR_FOR" },
+    "ENDFOR": { "ir_representation": "IR_ENDFOR" }
   }
 
 }
