@@ -178,32 +178,38 @@ def parse_plutus_script(plutus_code):
             if DEBUG_MODE:
                 print(f"Nested Logic Detected: {line}")
       
-        # Logical and Arithmetic Operations Integration
-        line = map_operations(line, logical_mappings)
-        conditions.append(line)
-
-        line = map_operations(line, arithmetic_mappings)
-        arithmetic_operations.append(line)
-
-        line = map_operations(line, bitwise_mappings)
-        bitwise_operations.append(line)
-        
-        line = map_operations(line, state_update_mappings)
-        state_changes.append(line)
-
-
-        # Re-evaluate tokens after mappings are applied
+        # Tokenize and Initialize
         tokens = line.replace("(", "").replace(")", "").split()
         output = tokens[0]
-        op1 = tokens[2]
+        op1 = tokens[2] if len(tokens) > 2 else None
         op2 = tokens[4] if len(tokens) > 4 else None
 
-        # Append to ladder logic lines with mapped operations
-        ladder_logic_lines.append(
-           f"XIC {op1} AND {op2} OTE {output}" if "AND" in line else
-           f"XIC {op1} OR {op2} OTE {output}" if "OR" in line else
-           f"XIO {op1} OTE {output}"
-        )
+        # Centralized and Ordered Mapping Flow
+        for mapping in [logical_mappings, comparison_mappings, arithmetic_mappings, state_update_mappings, bitwise_mappings, control_flow_mappings]:
+            line = map_operations(line, mapping)
+            tokens = line.replace("(", "").replace(")", "").split()  # Re-evaluate tokens
+
+            # Track Mapped Operations
+            if mapping == logical_mappings:
+               conditions.append(line)
+            elif mapping == comparison_mappings:
+               conditions.append(line)  # Comparison ops are also conditions
+            elif mapping == arithmetic_mappings:
+               arithmetic_operations.append(line)
+            elif mapping == state_update_mappings:
+               state_changes.append(line)
+            elif mapping == bitwise_mappings:
+               bitwise_operations.append(line)
+            elif mapping == control_flow_mappings:
+               control_flow.append(line)
+
+            # Append to Ladder Logic Lines
+            ladder_logic_lines.append(
+               f"XIC {op1} AND {op2} OTE {output}" if "AND" in line else
+               f"XIC {op1} OR {op2} OTE {output}" if "OR" in line else
+               f"XIC {op1} {op2} OTE {output}" if "XIC" in line else
+               f"XIO {op1} OTE {output}"
+    )
 
     # Process Nested Logic Stack
     while nested_stack:
