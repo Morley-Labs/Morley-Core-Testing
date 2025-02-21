@@ -184,32 +184,62 @@ def parse_plutus_script(plutus_code):
         op1 = tokens[2] if len(tokens) > 2 else None
         op2 = tokens[4] if len(tokens) > 4 else None
 
-        # Centralized and Ordered Mapping Flow
-        for mapping in [logical_mappings, comparison_mappings, arithmetic_mappings, state_update_mappings, bitwise_mappings, control_flow_mappings]:
-            line = map_operations(line, mapping)
-            tokens = line.replace("(", "").replace(")", "").split()  # Re-evaluate tokens
+        # Identify and Map Operation Type
+        operation_type = None
+        if any(op in line for op in logical_mappings.keys()):
+           operation_type = "logical"
+           line = map_operations(line, logical_mappings)
+           conditions.append(line)
+        elif any(op in line for op in comparison_mappings.keys()):
+            operation_type = "comparison"
+            line = map_comparison_operator(line)
+            conditions.append(line)
+        elif any(op in line for op in arithmetic_mappings.keys()):
+            operation_type = "arithmetic"
+            line = map_operations(line, arithmetic_mappings)
+            arithmetic_operations.append(line)
+        elif any(op in line for op in state_update_mappings.keys()):
+            operation_type = "state_update"
+            line = map_operations(line, state_update_mappings)
+            state_changes.append(line)
+        elif any(op in line for op in bitwise_mappings.keys()):
+            operation_type = "bitwise"
+            line = map_operations(line, bitwise_mappings)
+            bitwise_operations.append(line)
+        elif any(op in line for op in control_flow_mappings.keys()):
+            operation_type = "control_flow"
+            line = map_operations(line, control_flow_mappings)
+            control_flow.append(line)
 
-            # Track Mapped Operations
-            if mapping == logical_mappings:
-               conditions.append(line)
-            elif mapping == comparison_mappings:
-               conditions.append(line)  # Comparison ops are also conditions
-            elif mapping == arithmetic_mappings:
-               arithmetic_operations.append(line)
-            elif mapping == state_update_mappings:
-               state_changes.append(line)
-            elif mapping == bitwise_mappings:
-               bitwise_operations.append(line)
-            elif mapping == control_flow_mappings:
-               control_flow.append(line)
-
-            # Append to Ladder Logic Lines
-            ladder_logic_lines.append(
-               f"XIC {op1} AND {op2} OTE {output}" if "AND" in line else
-               f"XIC {op1} OR {op2} OTE {output}" if "OR" in line else
-               f"XIC {op1} {op2} OTE {output}" if "XIC" in line else
-               f"XIO {op1} OTE {output}"
+        # Append to Ladder Logic Lines Based on Operation Type
+        if operation_type == "logical":
+           ladder_logic_lines.append(
+           f"XIC {op1} AND {op2} OTE {output}" if "AND" in line else
+           f"XIC {op1} OR {op2} OTE {output}" if "OR" in line else
+           f"XIC {op1} OTE {output}"
     )
+        elif operation_type == "comparison":
+            ladder_logic_lines.append(
+                f"XIC {op1} {op2} OTE {output}"
+    )
+        elif operation_type == "arithmetic":
+            ladder_logic_lines.append(
+                f"ADD {output} = {op1} + {op2}" if "+" in line else
+                f"SUB {output} = {op1} - {op2}" if "-" in line else
+                f"MUL {output} = {op1} * {op2}" if "*" in line else
+                f"DIV {output} = {op1} / {op2}"
+    )
+        elif operation_type == "state_update":
+            ladder_logic_lines.append(
+                f"MOV {output} = {op1}"
+    )
+        elif operation_type == "bitwise":
+            ladder_logic_lines.append(line)
+        elif operation_type == "control_flow":
+            ladder_logic_lines.append(line)
+        else:
+            # Default to XIO if no operation type is identified
+            ladder_logic_lines.append(f"XIO {op1} OTE {output}")
 
     # Process Nested Logic Stack
     while nested_stack:
