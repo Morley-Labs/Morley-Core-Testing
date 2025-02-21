@@ -302,7 +302,15 @@ def parse_plutus_script(plutus_code):
             line = map_comparison_operator(line)
 
         nested_list = list(nested_stack)
-        return "\n".join(nested_list)
+
+        return (
+            conditions,
+            state_changes,
+            arithmetic_operations,
+            bitwise_operations,
+            control_flow,
+            nested_list  # Use nested_list as ladder_logic_lines
+        )
 
 
 def convert_to_ladder_logic(
