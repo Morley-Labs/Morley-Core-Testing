@@ -92,9 +92,15 @@
             "symbol": "MOV",
             "ir_representation": "LL_MOV",
             "description": "Move Data"
+        },
+        "state_updates": {
+    "ADD": { "symbol": "ADD", "description": "Addition Assignment (+=)" },
+    "SUB": { "symbol": "SUB", "description": "Subtraction Assignment (-=)" },
+    "MUL": { "symbol": "MUL", "description": "Multiplication Assignment (*=)" },
+    "DIV": { "symbol": "DIV", "description": "Division Assignment (/=)" }
         }
     },
-    "logical_operations": {
+        "logical_operations": {
         "AND": {
             "symbol": "AND",
             "ir_representation": "LL_AND",
