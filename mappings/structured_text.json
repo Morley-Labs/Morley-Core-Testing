@@ -1,74 +1,436 @@
 {
-  "logical_operators": {
-      "AND": { "ir_representation": "ST_AND" },
-      "OR": { "ir_representation": "ST_OR" },
-      "XOR": { "ir_representation": "ST_XOR" },
-      "NOT": { "ir_representation": "ST_NOT" }
-  },
-  "comparison_operators": {
-      "=": { "ir_representation": "ST_EQ" },
-      "<": { "ir_representation": "ST_LT" },
-      ">": { "ir_representation": "ST_GT" },
-      "<=": { "ir_representation": "ST_LEQ" },
-      ">=": { "ir_representation": "ST_GEQ" }
-  },
-  "timers": {
-      "TON": { "ir_representation": "ST_TON", "description": "On-Delay Timer" },
-      "TOF": { "ir_representation": "ST_TOF", "description": "Off-Delay Timer" },
-      "TP": { "ir_representation": "ST_TP", "description": "Pulse Timer" }
-  },
-  "counters": {
-      "CTU": { "ir_representation": "ST_CTU", "description": "Counter Up" },
-      "CTD": { "ir_representation": "ST_CTD", "description": "Counter Down" },
-      "CTUD": { "ir_representation": "ST_CTUD", "description": "Counter Up-Down" }
-  },
-  "math_functions": {
-      "ABS": { "ir_representation": "ST_ABS" },
-      "SQRT": { "ir_representation": "ST_SQRT" },
-      "LN": { "ir_representation": "ST_LN" },
-      "LOG": { "ir_representation": "ST_LOG" },
-      "EXP": { "ir_representation": "ST_EXP" },
-      "EXPT": { "ir_representation": "ST_EXPT" },
-      "SIN": { "ir_representation": "ST_SIN" },
-      "COS": { "ir_representation": "ST_COS" },
-      "TAN": { "ir_representation": "ST_TAN" },
-      "ASIN": { "ir_representation": "ST_ASIN" },
-      "ACOS": { "ir_representation": "ST_ACOS" },
-      "ATAN": { "ir_representation": "ST_ATAN" },
-      "MOD": { "ir_representation": "ST_MOD" }
-  },
-  "bitwise_operations": {
-      "SHL": { "ir_representation": "ST_SHL" },
-      "SHR": { "ir_representation": "ST_SHR" },
-      "ROR": { "ir_representation": "ST_ROR" },
-      "ROL": { "ir_representation": "ST_ROL" },
-      "AND_BIT": { "ir_representation": "ST_AND_BIT" },
-      "OR_BIT": { "ir_representation": "ST_OR_BIT" },
-      "XOR_BIT": { "ir_representation": "ST_XOR_BIT" },
-      "NOT_BIT": { "ir_representation": "ST_NOT_BIT" }
-
-  },
-  "selection_functions": {
-      "SEL": { "ir_representation": "ST_SEL" },
-      "MUX": { "ir_representation": "ST_MUX" },
-      "MAX": { "ir_representation": "ST_MAX" },
-      "MIN": { "ir_representation": "ST_MIN" },
-      "LIMIT": { "ir_representation": "ST_LIMIT" }
-  },
-  "data_manipulation": {
-      "MOVE": { "ir_representation": "ST_MOV" },
-      "SWAP": { "ir_representation": "ST_SWAP" },
-      "INT_TO_REAL": { "ir_representation": "ST_INT_TO_REAL" },
-      "REAL_TO_INT": { "ir_representation": "ST_REAL_TO_INT" }
-  },
-  "control_flow": {
-    "IF": { "ir_representation": "ST_IF" },
-    "ELSE": { "ir_representation": "ST_ELSE" },
-    "ENDIF": { "ir_representation": "ST_ENDIF" },
-    "WHILE": { "ir_representation": "ST_WHILE" },
-    "ENDWHILE": { "ir_representation": "ST_ENDWHILE" },
-    "FOR": { "ir_representation": "ST_FOR" },
-    "ENDFOR": { "ir_representation": "ST_ENDFOR" }
+    "logical_operations": {
+        "AND": {
+            "ir_representation": "ST_AND"
+        },
+        "NAND": {
+            "ir_representation": "ST_NAND"
+        },
+        "OR": {
+            "ir_representation": "ST_OR"
+        },
+        "NOR": {
+            "ir_representation": "ST_NOR"
+        },
+        "XOR": {
+            "ir_representation": "ST_XOR"
+        },
+        "XNOR": {
+            "ir_representation": "ST_XNOR"
+        },
+        "NOT": {
+            "ir_representation": "ST_NOT"
+        },
+        "XIC": {
+            "ir_representation": "ST_XIC"
+        },
+        "XIO": {
+            "ir_representation": "ST_XIO"
+        },
+        "OTE": {
+            "ir_representation": "ST_OTE"
+        }
+    },
+    "comparison_operators": {
+        "EQUAL": {
+            "ir_representation": "ST_EQUAL"
+        },
+        "NOT_EQUAL": {
+            "ir_representation": "ST_NOT_EQUAL"
+        },
+        "GREATER_THAN": {
+            "ir_representation": "ST_GREATER_THAN"
+        },
+        "LESS_THAN": {
+            "ir_representation": "ST_LESS_THAN"
+        },
+        "GREATER_OR_EQUAL": {
+            "ir_representation": "ST_GREATER_OR_EQUAL"
+        },
+        "LESS_OR_EQUAL": {
+            "ir_representation": "ST_LESS_OR_EQUAL"
+        }
+    },
+    "timers": {
+        "TON": {
+            "ir_representation": "ST_TON",
+            "description": "On-Delay Timer"
+        },
+        "TOF": {
+            "ir_representation": "ST_TOF",
+            "description": "Off-Delay Timer"
+        },
+        "TP": {
+            "ir_representation": "ST_TP",
+            "description": "Pulse Timer"
+        }
+    },
+    "counters": {
+        "CTU": {
+            "ir_representation": "ST_CTU",
+            "description": "Counter Up"
+        },
+        "CTD": {
+            "ir_representation": "ST_CTD",
+            "description": "Counter Down"
+        },
+        "CTUD": {
+            "ir_representation": "ST_CTUD",
+            "description": "Counter Up-Down"
+        }
+    },
+    "math_functions": {
+        "SIN": {
+            "symbol": "SIN",
+            "ir_representation": "ST_SIN",
+            "description": "Sine Function"
+        },
+        "COS": {
+            "symbol": "COS",
+            "ir_representation": "ST_COS",
+            "description": "Cosine Function"
+        },
+        "TAN": {
+            "symbol": "TAN",
+            "ir_representation": "ST_TAN",
+            "description": "Tangent Function"
+        },
+        "LOG": {
+            "symbol": "LOG",
+            "ir_representation": "ST_LOG",
+            "description": "Logarithm Function"
+        },
+        "EXP": {
+            "symbol": "EXP",
+            "ir_representation": "ST_EXP",
+            "description": "Exponential Function"
+        },
+        "SQRT": {
+            "symbol": "SQRT",
+            "ir_representation": "ST_SQRT",
+            "description": "Square Root Function"
+        },
+        "LN": {
+            "symbol": "LN",
+            "ir_representation": "ST_LN",
+            "description": "Natural Logarithm"
+        },
+        "ASIN": {
+            "symbol": "ASIN",
+            "ir_representation": "ST_ASIN",
+            "description": "Arcsine Function"
+        },
+        "ACOS": {
+            "symbol": "ACOS",
+            "ir_representation": "ST_ACOS",
+            "description": "Arccosine Function"
+        },
+        "ATAN": {
+            "symbol": "ATAN",
+            "ir_representation": "ST_ATAN",
+            "description": "Arctangent Function"
+        },
+        "POW": {
+            "symbol": "POW",
+            "ir_representation": "ST_POW",
+            "description": "Power (Exponentiation)"
+        },
+        "ABS": {
+            "symbol": "ABS",
+            "ir_representation": "ST_FABS",
+            "description": "Absolute Value"
+        },
+        "NEG": {
+            "symbol": "NEG",
+            "ir_representation": "ST_FNEG",
+            "description": "Negation"
+        },
+        "SINH": {
+            "symbol": "SINH",
+            "ir_representation": "ST_SINH",
+            "description": "Hyperbolic Sine"
+        },
+        "COSH": {
+            "symbol": "COSH",
+            "ir_representation": "ST_COSH",
+            "description": "Hyperbolic Cosine"
+        },
+        "TANH": {
+            "symbol": "TANH",
+            "ir_representation": "ST_TANH",
+            "description": "Hyperbolic Tangent"
+        }
+    },
+    "bitwise_operations": {
+        "SHL": {
+            "ir_representation": "ST_SHL"
+        },
+        "SHR": {
+            "ir_representation": "ST_SHR"
+        },
+        "ROR": {
+            "ir_representation": "ST_ROR"
+        },
+        "ROL": {
+            "ir_representation": "ST_ROL"
+        },
+        "AND_BIT": {
+            "ir_representation": "ST_AND_BIT"
+        },
+        "OR_BIT": {
+            "ir_representation": "ST_OR_BIT"
+        },
+        "XOR_BIT": {
+            "ir_representation": "ST_XOR_BIT"
+        },
+        "NOT_BIT": {
+            "ir_representation": "ST_NOT_BIT"
+        }
+    },
+    "selection_functions": {
+        "SEL": {
+            "ir_representation": "ST_SEL"
+        },
+        "MUX": {
+            "ir_representation": "ST_MUX"
+        },
+        "MAX": {
+            "ir_representation": "ST_MAX"
+        },
+        "MIN": {
+            "ir_representation": "ST_MIN"
+        },
+        "LIMIT": {
+            "ir_representation": "ST_LIMIT"
+        }
+    },
+    "data_manipulation": {
+        "MOVE": {
+            "symbol": "MOVE",
+            "ir_representation": "ST_MOV",
+            "description": "Move (Structured Text)"
+        },
+        "SWAP": {
+            "symbol": "SWAP",
+            "ir_representation": "ST_SWAP",
+            "description": "Swap (Structured Text)"
+        },
+        "INT_TO_REAL": {
+            "symbol": "INT_TO_REAL",
+            "ir_representation": "ST_INT_TO_REAL",
+            "description": "Integer to Real Conversion"
+        },
+        "REAL_TO_INT": {
+            "symbol": "REAL_TO_INT",
+            "ir_representation": "ST_REAL_TO_INT",
+            "description": "Real to Integer Conversion"
+        },
+        "MOV": {
+            "symbol": "MOV",
+            "ir_representation": "ST_MOV",
+            "description": "Move (Structured Text)"
+        },
+        "SWP": {
+            "symbol": "SWP",
+            "ir_representation": "ST_SWP",
+            "description": "Swap (Structured Text)"
+        },
+        "CLR": {
+            "symbol": "CLR",
+            "ir_representation": "ST_CLR",
+            "description": "Clear (Structured Text)"
+        }
+    },
+    "control_flow": {
+        "IF": {
+            "ir_representation": "ST_IF",
+            "description": "Start of IF block"
+        },
+        "ELSE": {
+            "ir_representation": "ST_ELSE",
+            "description": "Start of ELSE block"
+        },
+        "ENDIF": {
+            "ir_representation": "ST_ENDIF",
+            "description": "End of IF or ELSE block"
+        },
+        "WHILE": {
+            "ir_representation": "ST_WHILE",
+            "description": "Start of WHILE loop"
+        },
+        "ENDWHILE": {
+            "ir_representation": "ST_ENDWHILE",
+            "description": "End of WHILE loop"
+        },
+        "FOR": {
+            "ir_representation": "ST_FOR",
+            "description": "Start of FOR loop"
+        },
+        "ENDFOR": {
+            "ir_representation": "ST_ENDFOR",
+            "description": "End of FOR loop"
+        }
+    },
+    "coils": {
+        "output": {
+            "symbol": "OTE",
+            "ir_representation": "ST_OTE",
+            "description": "Output Energize (Coil)"
+        },
+        "latch": {
+            "symbol": "OTL",
+            "ir_representation": "ST_OTL",
+            "description": "Latching Relay Set"
+        },
+        "unlatch": {
+            "symbol": "OTU",
+            "ir_representation": "ST_OTU",
+            "description": "Latching Relay Reset"
+        },
+        "reset": {
+            "symbol": "RES",
+            "ir_representation": "ST_RES",
+            "description": "Reset Coil"
+        }
+    },
+    "contacts": {
+        "normally_open": {
+            "symbol": "XIC",
+            "ir_representation": "ST_XIC",
+            "description": "Examine If Closed (Normally Open Contact)"
+        },
+        "normally_closed": {
+            "symbol": "XIO",
+            "ir_representation": "ST_XIO",
+            "description": "Examine If Open (Normally Closed Contact)"
+        },
+        "one_shot_rising": {
+            "symbol": "OSR",
+            "ir_representation": "ST_OSR",
+            "description": "One-Shot Rising"
+        },
+        "one_shot_falling": {
+            "symbol": "OSF",
+            "ir_representation": "ST_OSF",
+            "description": "One-Shot Falling"
+        }
+    },
+    "nested_logic": {
+        "NESTED_AND": {
+            "symbol": "NESTED_AND",
+            "ir_representation": "ST_NESTED_AND",
+            "description": "Nested AND Logic"
+        },
+        "NESTED_OR": {
+            "symbol": "NESTED_OR",
+            "ir_representation": "ST_NESTED_OR",
+            "description": "Nested OR Logic"
+        },
+        "NESTED_NOT": {
+            "symbol": "NESTED_NOT",
+            "ir_representation": "ST_NESTED_NOT",
+            "description": "Nested NOT Logic"
+        },
+        "NESTED_XOR": {
+            "symbol": "NESTED_XOR",
+            "ir_representation": "ST_NESTED_XOR",
+            "description": "Nested XOR Logic"
+        }
+    },
+    "advanced_math": {
+        "SINH": {
+            "symbol": "SINH",
+            "ir_representation": "ST_SINH",
+            "description": "Hyperbolic Sine Function"
+        },
+        "COSH": {
+            "symbol": "COSH",
+            "ir_representation": "ST_COSH",
+            "description": "Hyperbolic Cosine Function"
+        },
+        "TANH": {
+            "symbol": "TANH",
+            "ir_representation": "ST_TANH",
+            "description": "Hyperbolic Tangent Function"
+        },
+        "POW": {
+            "symbol": "POW",
+            "ir_representation": "ST_POW",
+            "description": "Exponentiation"
+        },
+        "FADD": {
+            "symbol": "FADD",
+            "ir_representation": "ST_FADD",
+            "description": "Floating Point Addition"
+        },
+        "FSUB": {
+            "symbol": "FSUB",
+            "ir_representation": "ST_FSUB",
+            "description": "Floating Point Subtraction"
+        },
+        "FMUL": {
+            "symbol": "FMUL",
+            "ir_representation": "ST_FMUL",
+            "description": "Floating Point Multiplication"
+        },
+        "FDIV": {
+            "symbol": "FDIV",
+            "ir_representation": "ST_FDIV",
+            "description": "Floating Point Division"
+        },
+        "FNEG": {
+            "symbol": "FNEG",
+            "ir_representation": "ST_FNEG",
+            "description": "Floating Point Negation"
+        },
+        "FABS": {
+            "symbol": "FABS",
+            "ir_representation": "ST_FABS",
+            "description": "Floating Point Absolute Value"
+        }
+    },
+    "jump_subroutine": {
+        "JMP": {
+            "symbol": "JMP",
+            "ir_representation": "ST_JMP",
+            "description": "Unconditional Jump to Label"
+        },
+        "LBL": {
+            "symbol": "LBL",
+            "ir_representation": "ST_LBL",
+            "description": "Label for Jump Destination"
+        },
+        "JSR": {
+            "symbol": "JSR",
+            "ir_representation": "ST_JSR",
+            "description": "Jump to Subroutine"
+        },
+        "RET": {
+            "symbol": "RET",
+            "ir_representation": "ST_RET",
+            "description": "Return from Subroutine"
+        }
+    },
+    "state_updates": {
+    "ADD": {
+        "symbol": "ADD",
+        "ir_representation": "ST_ADD_ASSIGN",
+        "description": "Addition Assignment (+=)"
+    },
+    "SUB": {
+        "symbol": "SUB",
+        "ir_representation": "ST_SUB_ASSIGN",
+        "description": "Subtraction Assignment (-=)"
+    },
+    "MUL": {
+        "symbol": "MUL",
+        "ir_representation": "ST_MUL_ASSIGN",
+        "description": "Multiplication Assignment (*=)"
+    },
+    "DIV": {
+        "symbol": "DIV",
+        "ir_representation": "ST_DIV_ASSIGN",
+        "description": "Division Assignment (/=)"
+    }
 }
-
 }
