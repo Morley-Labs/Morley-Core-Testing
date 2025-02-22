@@ -1,0 +1,6 @@
+IF (A && B) THEN
+    X = Y + Z;
+    IF (C || D) THEN
+        M += N;
+    ENDIF;
+ENDIF;

@@ -1,0 +1,9 @@
+FOR (i = 0; i < 10; i++) 
+    WHILE (A < B)
+        IF (X && Y)
+            Z += W;
+        ELSE
+            W -= Z;
+        ENDIF;
+    ENDWHILE;
+ENDFOR;
