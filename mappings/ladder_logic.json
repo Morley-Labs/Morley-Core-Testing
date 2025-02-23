@@ -499,6 +499,11 @@
     "ir_representation": "LL_ELSE",
     "description": "Start of ELSE block"
 },
+"ENDIF": {
+    "symbol": "ENDIF",
+    "ir_representation": "LL_ENDIF",
+    "description": "End of IF-ELSE block"
+},
 "WHILE": {
     "symbol": "WHILE",
     "ir_representation": "LL_WHILE",

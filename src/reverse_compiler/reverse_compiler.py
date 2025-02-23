@@ -4,14 +4,93 @@ import os
 import json
 import re
 from collections import deque
-import sys
+from src.reverse_compiler.utils import *
+from src.reverse_compiler.reverse_compiler import *
+
+
+def flatten_and_indent(ladder_logic_lines, level=0):
+    """Maintain the hierarchical structure as a nested list."""
+    indented_output = []
+    indent = "    " * level  # 4 spaces per level
+
+    for line in ladder_logic_lines:
+        if isinstance(line, list):
+            # Recursively handle nested lists with increased indent
+            nested_output = flatten_and_indent(line, level + 1)
+            indented_output.extend(nested_output)
+        else:
+            # Add the line with indentation for the current level
+            indented_output.append(f"{indent}{line}")
+
+    return indented_output
+
+
+operations = {
+    "logical_operations": ["AND", "OR", "XOR", "NOT"],
+    "comparison_operations": ["EQU", "NEQ", "LES", "LEQ", "GRT", "GEQ"],
+    "arithmetic_operations": [
+        "ADD",
+        "SUB",
+        "MUL",
+        "DIV",
+        "MOD",
+        "SQRT",
+        "EXP",
+        "MOV",
+    ],
+    "bitwise_operations": [
+        "AND_BIT",
+        "OR_BIT",
+        "XOR_BIT",
+        "NOT_BIT",
+        "SHL",
+        "SHR",
+        "ROR",
+        "ROL",
+    ],
+    "timers_counters": ["TON", "TOF", "TP", "CTU", "CTD", "CTUD", "RTO", "RES"],
+    "selection_functions": ["MUX", "LIMIT", "SEL", "MAX", "MIN"],
+    "jump_subroutine": ["JMP", "LBL", "JSR", "RET"],
+    "function_blocks": ["SR", "RS", "SFB", "FB", "FC"],
+    "coils_outputs": ["OTE", "OTL", "OTU"],
+    "advanced_math": [
+        "LN",
+        "LOG",
+        "SIN",
+        "COS",
+        "TAN",
+        "ASIN",
+        "ACOS",
+        "ATAN",
+        "SINH",
+        "COSH",
+        "TANH",
+        "POW",
+        "SQRT",
+        "EXP",
+        "FADD",
+        "FSUB",
+        "FMUL",
+        "FDIV",
+        "FNEG",
+        "FABS",
+    ],
+    "nested_logic": [
+        "NAND",
+        "NOR",
+        "XNOR",
+        "NESTED_AND",
+        "NESTED_OR",
+        "NESTED_NOT",
+        "NESTED_XOR",
+    ],
+}
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: python reverse_compiler.py <input_file>")
+        print(f"[DEBUG] Arguments Received: {sys.argv}")
         return
-
-    from src.reverse_compiler.utils import load_plutus_script
 
     input_file = sys.argv[1]
     print(f"[DEBUG] Input File Path: {input_file}")
@@ -20,8 +99,17 @@ def main():
     plutus_code = load_plutus_script(input_file)
     print(f"[DEBUG] Plutus Code:\n{plutus_code}")
 
-    ladder_logic_code = reverse_compile_plutus_to_ll(plutus_code)
-    print(f"[DEBUG] Generated Ladder Logic:\n{ladder_logic_code}")
+    # Determine context from file extension
+    context = "LL"  # Default to Ladder Logic
+    if input_file.endswith(".st"):
+        context = "ST"
+    elif input_file.endswith(".ir"):
+        context = "IR"
+
+    final_output = reverse_compile_plutus_to_ll(plutus_code, context)
+    print("[DEBUG] Final Output from reverse_compile_plutus_to_ll():\n", final_output)
+    return final_output  # This ensures the output is passed along
+
 
 def flatten_mappings(mapping, prefix=None):
     """
@@ -140,99 +228,66 @@ def tokenize_line(line):
 
 
 def handle_nested_logic(
-    nested_logic, control_flow, plutus_code, operations, prefix="LL"
+    nested_logic, control_flow, plutus_code, operations, context, prefix="LL"
 ):
     """
     Recursively handle nested logic and maintain consistent prefixing.
+    Dynamically maps to LL, ST, or IR representations.
     """
     ladder_logic_lines = []
+    nesting_stack = []
 
     # Collect all nested logic lines
     while nested_logic:
-        nested_condition = nested_logic.pop()
-        nested_condition = map_operations(
-            nested_condition, operations["nested_logic"], prefix=prefix
-        )
-        ladder_logic_lines.append(f"NESTED LOGIC: {nested_condition}")
-        control_flow.append(nested_condition)
+        nested_condition = nested_logic.popleft()
 
-        # Recursively handle further nesting
-        if "NESTED_" in nested_condition:
-            nested_logic_lines = handle_nested_logic(
-                nested_logic, control_flow, plutus_code, operations, prefix="LL"
-            )
-            ladder_logic_lines.extend(nested_logic_lines)
+        # Dynamically select the correct representation
+        if context == "LL":
+            mappings = ladder_logic.get("nested_logic", {})
+        elif context == "ST":
+            mappings = structured_text.get("nested_logic", {})
+        elif context == "IR":
+            mappings = instruction_set.get("nested_logic", {})
+        else:
+            raise ValueError(f"Unknown context: {context}")
 
-    if "mustValidateIn" in plutus_code:
-        slot_match = re.search(r"mustValidateIn \(from slot(\d+)\)", plutus_code)
-    if slot_match:
-        slot_value = slot_match.group(1)
-    if f"TON TimerX, {slot_value}ms" not in ladder_logic_lines:
-        ladder_logic_lines.append(f"TON TimerX, {slot_value}ms")
+        # Check for IF, ELSE, ENDIF
+        if "if" in nested_condition:
+            new_block = [mappings["IF"]["ir_representation"]]
+            nesting_stack.append(new_block)
+            ladder_logic_lines.append(new_block)  # Add as a new block
+        elif "else" in nested_condition:
+            if nesting_stack:
+                current_block = nesting_stack[-1]
+                current_block.append(mappings["ELSE"]["ir_representation"])
+                new_else_block = []
+                current_block.append(new_else_block)
+                nesting_stack.append(new_else_block)
+        elif "endif" in nested_condition:
+            if nesting_stack:
+                current_block = nesting_stack.pop()
+                current_block.append(mappings["ENDIF"]["ir_representation"])
 
-    if "Verifiable Hash" in plutus_code:
-        hash_match = re.search(r"-- Verifiable Hash: (\w+)", plutus_code)
-        if hash_match:
-            hash_value = hash_match.group(1)
-            if f"// Verifiable Hash: {hash_value}" not in ladder_logic_lines:
-                ladder_logic_lines.append(f"// Verifiable Hash: {hash_value}")
+        print(f"[DEBUG] Ladder Logic Lines: {ladder_logic_lines}")
+        print(f"[DEBUG] Nesting Stack: {nesting_stack}")
 
-    if any(nested in line for nested in operations["nested_logic"]):
-        nested_logic.append(line)
-        ladder_logic_lines.append(f"NESTED LOGIC: {line}")
-        control_flow.append(line)
-        nested_logic_lines = handle_nested_logic(
-            nested_logic, control_flow, plutus_code, operations, prefix="LL"
-        )
-        ladder_logic_lines.extend(nested_logic_lines)
+    # Close any remaining open blocks
+    while nesting_stack:
+        current_block = nesting_stack.pop()
+        current_block.append(mappings["ENDIF"]["ir_representation"])
 
-        if DEBUG_MODE:
-            print(f"Nested Logic Detected: {line}")
+    return ladder_logic_lines
 
-    mapping = None
-    for mapping in [
-        logical_mappings,
-        state_update_mappings,
-        arithmetic_mappings,
-        bitwise_mappings,
-        control_flow_mappings,
-        comparison_mappings,
-    ]:
 
-        line = map_operations(line, mapping)
-        tokens = tokenize_line(line)
-        print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
-
-        for op, template in mapping.items():
-            if op in line:
-                output = tokens[0] if len(tokens) > 0 else None
-                op1 = tokens[2] if len(tokens) > 2 else None
-                op2 = tokens[4] if len(tokens) > 4 else None
-                ladder_logic_lines.append(
-                    template.format(output=output, op1=op1, op2=op2)
-                )
-                return ladder_logic_lines
-
-        for comp_op, ir_rep in comparison_mappings.items():
-            if comp_op in line:
-                left, right = line.split(comp_op)
-                ladder_logic_lines.append(
-                    f"XIC {left.strip()} {ir_rep} {right.strip()} OTE {output}"
-                )
-
-    if not ladder_logic_lines:
-        ladder_logic_lines.append("No Ladder Logic Generated")
-
-def parse_plutus_script(plutus_code):
-
+def parse_plutus_script(plutus_code, context="LL"):
     conditions = []
     state_changes = []
     state_updates = []
     arithmetic_operations = []
     bitwise_operations = []
     control_flow = []
-    ladder_logic_lines = []
     nested_logic = deque(maxlen=MAX_NESTING_LEVEL)
+    ladder_logic_lines = []
 
     lines = plutus_code.split("\n")
     for line in lines:
@@ -243,112 +298,50 @@ def parse_plutus_script(plutus_code):
         print(f"[DEBUG] Processing Line: {line}")
         tokens = tokenize_line(line)
         print(f"[DEBUG] Tokens: {tokens}")
-        output = tokens[0]
-        op1 = tokens[2] if len(tokens) > 2 else None
-        op2 = tokens[4] if len(tokens) > 4 else None
 
-    # Populate Conditions
-    if "if" in line or "else" in line or "while" in line or "for" in line:
-        conditions.append(line)
-        print(f"[DEBUG] Appended to Conditions: {line}")
-
-    # Populate State Changes
-    if ":=" in line or "state" in line or "MOV" in line:
-        state_changes.append(line)
-        print(f"[DEBUG] Appended to State Changes: {line}")
-
-    # Populate State Updates
-    if "update" in line or "set" in line or "NEW" in line:
-        state_updates.append(line)
-        print(f"[DEBUG] Appended to State Updates: {line}")
-
-    # Populate Arithmetic Operations
-    if any(op in line for op in operations["arithmetic_operations"]):
-        arithmetic_operations.append(line)
-        print(f"[DEBUG] Appended to Arithmetic Operations: {line}")
-
-    # Populate Bitwise Operations
-    if any(op in line for op in operations["bitwise_operations"]):
-        bitwise_operations.append(line)
-        print(f"[DEBUG] Appended to Bitwise Operations: {line}")
-
-    # Populate Control Flow
-    if any(
-        keyword in line for keyword in ["goto", "call", "return", "break", "continue"]
-    ):
-        control_flow.append(line)
-        print(f"[DEBUG] Appended to Control Flow: {line}")
-
-    # Populate Nested Logic
-    if any(nested_op in line for nested_op in operations["nested_logic"]):
-        nested_logic.append(line)
-        print(f"[DEBUG] Appended to Nested Logic: {line}")
-
-        print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
-
-        condition_match = re.search(r'traceIfFalse "(.+?)" \((.+?)\)', line)
-        if condition_match:
-            print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
-            if "if" in line or "else" in line or "while" in line or "for" in line:
-                conditions.append(line)
-            message, condition = condition_match.groups()
-            ladder_logic_lines.append(f"XIC {condition} OTE {message}")
-            print(f"[DEBUG] Conditions: {conditions}")
-            print(f"[DEBUG] State Changes: {state_changes}")
-            print(f"[DEBUG] State Changes: {state_updates}")
-            print(f"[DEBUG] Arithmetic Operations: {arithmetic_operations}")
-            print(f"[DEBUG] Bitwise Operations: {bitwise_operations}")
-            print(f"[DEBUG] Control Flow: {control_flow}")
-            print(f"[DEBUG] Nested Logic: {nested_logic}")
-
-        if any(func in line for func in operations["advanced_math"]):
-            math_match = re.search(
-                r"(\w+) = (LN|LOG|SIN|COS|TAN|ASIN|ACOS|ATAN)\((\w+)\)", line
-            )
-            if math_match:
-                output, func, operand = math_match.groups()
-                ladder_logic_lines.append(
-                    f"{func.upper()} {output} = {func}({operand})"
-                )
-
-            elif any(op in line for op in control_flow_mappings.keys()):
-                print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
-                line = map_operations(line, control_flow_mappings, prefix="LL")
-                print(f"[DEBUG] Line Before Tokenization: {line}")
-
-                tokens = tokenize_line(line)
-                output = tokens[0] if len(tokens) > 0 else None
-                op1 = tokens[2] if len(tokens) > 2 else None
-                control_flow.append(line)
-                ladder_logic_lines.append(f"{output} = {op1} CONTROL FLOW")
-
-        else:
-            ladder_logic_lines.append(f"XIO {op1} OTE {output}")
-
-            ladder_logic_lines.append(
-                f"XIC {op1} AND {op2} OTE {output}"
-                if "AND" in line
-                else (
-                    f"XIC {op1} OR {op2} OTE {output}"
-                    if "OR" in line
-                    else (
-                        f"XIC {op1} {op2} OTE {output}"
-                        if "XIC" in line
-                        else f"XIO {op1} OTE {output}"
-                    )
+        # Handle Nested Logic
+        if "if" in line or "else" in line or "endif" in line:
+            nested_logic.append(line)
+            ladder_logic_lines.extend(
+                handle_nested_logic(
+                    nested_logic,
+                    control_flow,
+                    plutus_code,
+                    operations,
+                    context,
+                    prefix="LL",
                 )
             )
-            return (
-                conditions,
-                state_changes,
-                state_updates,
-                arithmetic_operations,
-                bitwise_operations,
-                control_flow,
-                nested_logic,
-            )
+            continue
 
-def reverse_compile_plutus_to_ll(plutus_code):
+        # Handle regular conditions
+        if "traceIfFalse" in line:
+            conditions.append(line)
+
+        # Handle State Changes
+        if ":=" in line or "state" in line:
+            state_changes.append(line)
+
+    print(f"[DEBUG] Final Parsed Components:")
+    print(f"Conditions: {conditions}")
+    print(f"State Changes: {state_changes}")
+    print(f"Control Flow: {control_flow}")
+    print(f"Nested Logic: {nested_logic}")
+    print(f"Ladder Logic Lines: {ladder_logic_lines}")
+
+    return (
+        conditions,
+        state_changes,
+        state_updates,
+        arithmetic_operations,
+        bitwise_operations,
+        control_flow,
+        nested_logic,
+        ladder_logic_lines,
+    )
+
+
+def reverse_compile_plutus_to_ll(plutus_code, context="LL"):
     """Full pipeline: Parse Plutus -> Convert to Ladder Logic with Nested Logic and Advanced Math."""
 
     (
@@ -359,10 +352,11 @@ def reverse_compile_plutus_to_ll(plutus_code):
         bitwise_operations,
         control_flow,
         nested_logic,
-    ) = parse_plutus_script(plutus_code)
+        ladder_logic_lines,
+    ) = parse_plutus_script(plutus_code, context)
 
     # Convert to Ladder Logic
-    ladder_logic_code = convert_to_ladder_logic(
+    ladder_logic_lines = convert_to_ladder_logic(
         conditions,
         state_changes,
         state_updates,
@@ -370,80 +364,19 @@ def reverse_compile_plutus_to_ll(plutus_code):
         bitwise_operations,
         control_flow,
         nested_logic,
+        ladder_logic_lines,
+        context,  # Pass context here
     )
 
-    # Flatten the output
-    flattened_output = (
-        "\n".join(ladder_logic_code)
-        if isinstance(ladder_logic_code, list)
-        else ladder_logic_code
-    )
-    print("[DEBUG] Final Flattened Output:\n", flattened_output)
+    nested_output = flatten_and_indent(ladder_logic_lines)
+    final_output = "\n".join(nested_output)  # << This joins the lines correctly
+    print("[DEBUG] Final Ladder Logic Output:\n", final_output)
+    return final_output  # << Return the joined output
 
-    return flattened_output
+from collections import deque
 
-from collections import deque 
 MAX_NESTING_LEVEL = 10
-operations = {
-    "logical_operations": ["AND", "OR", "XOR", "NOT"],
-    "comparison_operations": ["EQU", "NEQ", "LES", "LEQ", "GRT", "GEQ"],
-    "arithmetic_operations": [
-        "ADD",
-        "SUB",
-        "MUL",
-        "DIV",
-        "MOD",
-        "SQRT",
-        "EXP",
-        "MOV",
-    ],
-    "bitwise_operations": [
-        "AND_BIT",
-        "OR_BIT",
-        "XOR_BIT",
-        "NOT_BIT",
-        "SHL",
-        "SHR",
-        "ROR",
-        "ROL",
-    ],
-    "timers_counters": ["TON", "TOF", "TP", "CTU", "CTD", "CTUD", "RTO", "RES"],
-    "selection_functions": ["MUX", "LIMIT", "SEL", "MAX", "MIN"],
-    "jump_subroutine": ["JMP", "LBL", "JSR", "RET"],
-    "function_blocks": ["SR", "RS", "SFB", "FB", "FC"],
-    "coils_outputs": ["OTE", "OTL", "OTU"],
-    "advanced_math": [
-        "LN",
-        "LOG",
-        "SIN",
-        "COS",
-        "TAN",
-        "ASIN",
-        "ACOS",
-        "ATAN",
-        "SINH",
-        "COSH",
-        "TANH",
-        "POW",
-        "SQRT",
-        "EXP",
-        "FADD",
-        "FSUB",
-        "FMUL",
-        "FDIV",
-        "FNEG",
-        "FABS",
-    ],
-    "nested_logic": [
-        "NAND",
-        "NOR",
-        "XNOR",
-        "NESTED_AND",
-        "NESTED_OR",
-        "NESTED_NOT",
-        "NESTED_XOR",
-    ],
-}
+
 
 def convert_to_ladder_logic(
     conditions,
@@ -453,75 +386,77 @@ def convert_to_ladder_logic(
     bitwise_operations,
     control_flow,
     nested_logic,
+    ladder_logic_lines,
+    context,  # Accept context as a parameter
 ):
     """Convert extracted Plutus components to Ladder Logic."""
-    ladder_logic_code = []
+    ladder_logic_lines = []
 
     # Handle Conditions
     for condition in conditions:
-        ladder_logic_code.append(f"XIC {condition}")
+        ladder_logic_lines.append(f"XIC {condition}")
         print(f"[DEBUG] Converted Condition: XIC {condition}")
 
     # Handle State Changes
     for state_change in state_changes:
-        ladder_logic_code.append(f"MOV {state_change}")
+        ladder_logic_lines.append(f"MOV {state_change}")
         print(f"[DEBUG] Converted State Change: MOV {state_change}")
 
     # Handle State Updates
     for state_update in state_updates:
-        ladder_logic_code.append(f"UPDATE {state_update}")
+        ladder_logic_lines.append(f"UPDATE {state_update}")
         print(f"[DEBUG] Converted State Update: UPDATE {state_update}")
 
     # Handle Arithmetic Operations
     for arithmetic_operation in arithmetic_operations:
-        ladder_logic_code.append(f"ARITH {arithmetic_operation}")
+        ladder_logic_lines.append(f"ARITH {arithmetic_operation}")
         print(f"[DEBUG] Converted Arithmetic Operation: ARITH {arithmetic_operation}")
 
     # Handle Bitwise Operations
     for bitwise_operation in bitwise_operations:
-        ladder_logic_code.append(f"BITWISE {bitwise_operation}")
+        ladder_logic_lines.append(f"BITWISE {bitwise_operation}")
         print(f"[DEBUG] Converted Bitwise Operation: BITWISE {bitwise_operation}")
 
     # Handle Control Flow
     for flow in control_flow:
-        ladder_logic_code.append(f"FLOW {flow}")
-        print(f"[DEBUG] Converted Control Flow: FLOW {flow}")
+        if flow.startswith("LL_IF"):
+            ladder_logic_lines.append(flow)  # Start of an IF block
+        elif flow.startswith("LL_ELSE"):
+            ladder_logic_lines.append(flow)  # Start of an ELSE block
+        elif flow.startswith("LL_ENDIF"):
+            ladder_logic_lines.append(flow)  # End of the IF-ELSE block
+        else:
+            ladder_logic_lines.append(f"FLOW {flow}")
+        print(f"[DEBUG] Converted Control Flow: {flow}")
 
     # Handle Nested Logic
     for nested in nested_logic:
-        ladder_logic_code.append(f"NESTED LOGIC: {nested}")
+        # Pass the context to the nested logic handler
+        ladder_logic_lines.extend(
+            handle_nested_logic(nested_logic, control_flow, nested, operations, context)
+        )
         print(f"[DEBUG] Converted Nested Logic: NESTED LOGIC: {nested}")
 
-        return ladder_logic_code
+        # Maintain the hierarchical structure and return as a nested list
+        nested_output = flatten_and_indent(ladder_logic_lines)
+        print("[DEBUG] Final Nested Output:\n", nested_output)
 
-    (
-        conditions,
-        state_changes,
-        arithmetic_operations,
-        bitwise_operations,
-        control_flow,
-        nested_logic,
-    ) = parse_plutus_script(plutus_code)
+        # Join the output into a single string, preserving the structure
+        final_output = nested_output
+        print("[DEBUG] Final Ladder Logic Output:\n", final_output)
+        return final_output  # Return the fully joined output
 
-    ladder_logic_code = convert_to_ladder_logic(
-        conditions,
-        state_changes,
-        arithmetic_operations,
-        bitwise_operations,
-        control_flow,
-        nested_logic,
-    )
-    
-    flattened_output = (
-        "".join(ladder_logic_code)
-        if isinstance(ladder_logic_code, list)
-        else ladder_logic_code
-    )
-    print("[DEBUG] Returning Ladder Logic Code...")
 
-    if __name__ == "__main__":
-        main()
-        example_plutus = """ 
+if __name__ == "__main__":
+    # Run with input file from command line if provided
+    if len(sys.argv) > 1:
+        final_output = main()
+        print(
+            "[DEBUG] Final Output from main():\n", final_output
+        )  # This ensures the final output is printed
+    # Otherwise, run example Plutus test
+    else:
+        example_plutus = """
         traceIfFalse "Condition 1 failed" (X1 && X2)
         traceIfFalse "Condition 2 failed" (Y1 || Y2)
         let state = state + 1
@@ -530,5 +465,5 @@ def convert_to_ladder_logic(
         if balance >= 100
         JMP LABEL1
         """
-        ll_output = reverse_compile_plutus_to_ll(example_plutus)
-        print(f"Generated Ladder Logic:\n{ll_output}")
+        final_output = reverse_compile_plutus_to_ll(example_plutus)
+        print("[DEBUG] Final Output from Example Plutus:\n", final_output)
