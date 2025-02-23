@@ -1,0 +1,11 @@
+-- Test for Nested IF-ELSE Conditions
+traceIfFalse "Condition 1 failed" (X1 && X2)
+if balance >= 100 then
+    let state = state + 1
+    if state > 10 then
+        state = 0
+    else
+        state = state * 2
+else
+    state = state - 1
+OTE Output1

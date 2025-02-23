@@ -1,0 +1,8 @@
+-- Test for Advanced Math Operations and State Updates
+let result1 = SIN(X) + COS(Y)
+let result2 = EXP(Z) - LN(W)
+if result1 > result2 then
+    result = result1 * result2
+else
+    result = result1 / result2
+OTE Output3

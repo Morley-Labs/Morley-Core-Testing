@@ -1,0 +1,23 @@
+-- Complex Combination of Nested Logic, Loops, and Math
+traceIfFalse "Initial Condition Failed" (A && B)
+let counter = 0
+while counter < 3 do
+    let state = counter * 2
+    if state > 4 then
+        state = state - 1
+    else
+        state = state + 1
+    endif
+    counter = counter + 1
+endwhile
+
+let total = 0
+for i = 0 to 5 do
+    total = total + i
+    if total % 2 == 0 then
+        OTE Output4
+    endif
+endfor
+
+let result = SIN(total) + COS(counter)
+OTE FinalOutput
