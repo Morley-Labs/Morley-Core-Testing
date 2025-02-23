@@ -63,7 +63,12 @@
         "TP": {
             "ir_representation": "ST_TP",
             "description": "Pulse Timer"
-        }
+        },
+        "RTO": {
+    "symbol": "RTO",
+    "ir_representation": "ST_RTO",
+    "description": "Retentive Timer"
+}
     },
     "counters": {
         "CTU": {
@@ -77,7 +82,12 @@
         "CTUD": {
             "ir_representation": "ST_CTUD",
             "description": "Counter Up-Down"
-        }
+        },
+        "RES": {
+    "symbol": "RES",
+    "ir_representation": "ST_RES",
+    "description": "Counter Reset"
+}
     },
     "math_functions": {
         "SIN": {
@@ -335,7 +345,28 @@
             "symbol": "NESTED_XOR",
             "ir_representation": "ST_NESTED_XOR",
             "description": "Nested XOR Logic"
-        }
+        },
+        "IF": {
+    "symbol": "IF",
+    "ir_representation": "LL_IF",
+    "description": "Start of IF block"
+},
+"ELSE": {
+    "symbol": "ELSE",
+    "ir_representation": "LL_ELSE",
+    "description": "Start of ELSE block"
+},
+"WHILE": {
+    "symbol": "WHILE",
+    "ir_representation": "LL_WHILE",
+    "description": "Start of WHILE loop"
+},
+"FOR": {
+    "symbol": "FOR",
+    "ir_representation": "LL_FOR",
+    "description": "Start of FOR loop"
+}
+
     },
     "advanced_math": {
         "SINH": {

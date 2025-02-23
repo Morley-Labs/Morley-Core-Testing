@@ -1,0 +1,37 @@
+-- Compiled Plutus Core Script from Simple MPL Example
+
+-- Input Data Structure
+data Input = Input
+    { inputA :: Integer
+    , inputB :: Integer
+    } deriving (Show)
+
+-- Output Data Structure
+data Output = Output
+    { result  :: Integer
+    , isValid :: Bool
+    } deriving (Show)
+
+-- Arithmetic Operation
+let result = inputA + inputB
+
+-- Conditional Logic and State Update
+let (isValid, finalResult) = if result > 100 then
+                                (True, result - 50)
+                            else
+                                (False, result + 30)
+
+-- Blockchain Validation
+traceIfFalse "Result is not valid" isValid
+
+-- Final Output
+let output = Output { result = finalResult, isValid = isValid }
+
+-- Main Validator Script
+{-# INLINABLE mkValidator #-}
+mkValidator :: Input -> () -> ScriptContext -> Bool
+mkValidator input _ ctx = traceIfFalse "Result is not valid" (isValid output)
+
+-- Compiling the Validator
+validator :: CompiledCode (Input -> () -> ScriptContext -> Bool)
+validator = $$(compile [|| mkValidator ||])

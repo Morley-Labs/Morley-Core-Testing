@@ -48,14 +48,44 @@
             "symbol": "TP",
             "ir_representation": "LL_TP",
             "description": "Pulse Timer"
-        }
+        },
+        "TON": {
+    "symbol": "TON",
+    "ir_representation": "LL_TON",
+    "description": "On-Delay Timer"
+},
+"TOF": {
+    "symbol": "TOF",
+    "ir_representation": "LL_TOF",
+    "description": "Off-Delay Timer"
+},
+"RTO": {
+    "symbol": "RTO",
+    "ir_representation": "LL_RTO",
+    "description": "Retentive Timer"
+}
     },
     "counters": {
         "CTUD": {
             "symbol": "CTUD",
             "ir_representation": "LL_CTUD",
             "description": "Counter Up-Down"
-        }
+        },
+        "CTU": {
+    "symbol": "CTU",
+    "ir_representation": "LL_CTU",
+    "description": "Counter Up"
+},
+"CTD": {
+    "symbol": "CTD",
+    "ir_representation": "LL_CTD",
+    "description": "Counter Down"
+},
+"RES": {
+    "symbol": "RES",
+    "ir_representation": "LL_RES",
+    "description": "Counter Reset"
+}
     },
 "arithmetic": {
     "ADD": {
@@ -205,7 +235,28 @@
             "symbol": "NOT_BIT",
             "ir_representation": "LL_NOT_BIT",
             "description": "Bitwise NOT"
-        }
+        },
+        "SHL": {
+    "symbol": "SHL",
+    "ir_representation": "LL_SHL",
+    "description": "Bitwise Shift Left"
+},
+"SHR": {
+    "symbol": "SHR",
+    "ir_representation": "LL_SHR",
+    "description": "Bitwise Shift Right"
+},
+"ROR": {
+    "symbol": "ROR",
+    "ir_representation": "LL_ROR",
+    "description": "Rotate Right"
+},
+"ROL": {
+    "symbol": "ROL",
+    "ir_representation": "LL_ROL",
+    "description": "Rotate Left"
+}
+
     },
     "move_operations": {
         "SWAP": {
@@ -437,7 +488,28 @@
             "symbol": "NESTED_XOR",
             "ir_representation": "LL_NESTED_XOR",
             "description": "Nested XOR Logic"
-        }
+        },
+        "IF": {
+    "symbol": "IF",
+    "ir_representation": "LL_IF",
+    "description": "Start of IF block"
+},
+"ELSE": {
+    "symbol": "ELSE",
+    "ir_representation": "LL_ELSE",
+    "description": "Start of ELSE block"
+},
+"WHILE": {
+    "symbol": "WHILE",
+    "ir_representation": "LL_WHILE",
+    "description": "Start of WHILE loop"
+},
+"FOR": {
+    "symbol": "FOR",
+    "ir_representation": "LL_FOR",
+    "description": "Start of FOR loop"
+}
+
     },
     "advanced_math": {
         "SINH": {
