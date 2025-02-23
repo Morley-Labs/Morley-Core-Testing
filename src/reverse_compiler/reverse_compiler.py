@@ -1,7 +1,164 @@
+DEBUG_MODE = True
+
 import os
 import json
 import re
 from collections import deque
+import sys
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python reverse_compiler.py <input_file>")
+        return
+
+    from src.reverse_compiler.utils import load_plutus_script
+
+    input_file = sys.argv[1]
+    print(f"[DEBUG] Input File Path: {input_file}")
+    print(f"[DEBUG] Does the file exist? {os.path.exists(input_file)}")
+
+    plutus_code = load_plutus_script(input_file)
+    print(f"[DEBUG] Plutus Code:\n{plutus_code}")
+
+    ladder_logic_code = reverse_compile_plutus_to_ll(plutus_code)
+    print(f"[DEBUG] Generated Ladder Logic:\n{ladder_logic_code}")
+
+def reverse_compile_plutus_to_ll(plutus_code):
+    """Full pipeline: Parse Plutus -> Convert to Ladder Logic with Nested Logic and Advanced Math."""
+
+    (
+        conditions,
+        state_changes,
+        arithmetic_operations,
+        bitwise_operations,
+        control_flow,
+        nested_logic,
+    ) = parse_plutus_script(plutus_code)
+
+    ladder_logic_code = convert_to_ladder_logic(
+        conditions,
+        state_changes,
+        arithmetic_operations,
+        bitwise_operations,
+        control_flow,
+        nested_logic,
+    )
+
+    (
+        conditions,
+        state_updates,
+        arithmetic_operations,
+        bitwise_operations,
+        control_flow,
+        nested_logic,
+    ) = ([], [], [], [], [], [])
+
+    flattened_output = (
+        "".join(ladder_logic_code)
+        if isinstance(ladder_logic_code, list)
+        else ladder_logic_code
+    )
+    ladder_logic_code = (
+        flattened_output
+        + "\n"
+        + convert_to_ladder_logic(
+            conditions,
+            state_updates,
+            arithmetic_operations,
+            bitwise_operations,
+            control_flow,
+            nested_logic,
+        )
+    )
+    print("[DEBUG] Final Ladder Logic Code:\n", ladder_logic_code)
+    return ladder_logic_code
+
+
+def parse_plutus_script(plutus_code):
+    """Extract conditions, state updates, nested logic, and advanced math from a Morley-specific Plutus script."""
+    conditions = []
+    state_changes = []
+    arithmetic_operations = []
+    bitwise_operations = []
+    control_flow = []
+    ladder_logic_lines = []
+    nested_stack = deque(maxlen=MAX_NESTING_LEVEL)
+
+    lines = plutus_code.split("\n")
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        print(f"[DEBUG] Processing Line: {line}")
+        tokens = tokenize_line(line)
+        print(f"[DEBUG] Tokens: {tokens}")
+        output = tokens[0]
+        op1 = tokens[2] if len(tokens) > 2 else None
+        op2 = tokens[4] if len(tokens) > 4 else None
+
+        print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
+
+        condition_match = re.search(r'traceIfFalse "(.+?)" \((.+?)\)', line)
+        if condition_match:
+            print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
+            if "if" in line or "else" in line or "while" in line or "for" in line:
+                conditions.append(line)
+            message, condition = condition_match.groups()
+            ladder_logic_lines.append(f"XIC {condition} OTE {message}")
+            print(f"[DEBUG] Conditions: {conditions}")
+            print(f"[DEBUG] State Changes: {state_changes}")
+            print(f"[DEBUG] Arithmetic Operations: {arithmetic_operations}")
+            print(f"[DEBUG] Bitwise Operations: {bitwise_operations}")
+            print(f"[DEBUG] Control Flow: {control_flow}")
+            print(f"[DEBUG] Nested Logic: {nested_stack}")
+
+            return (
+                conditions,
+                state_changes,
+                arithmetic_operations,
+                bitwise_operations,
+                control_flow,
+                nested_stack,
+            )
+
+        if any(func in line for func in operations["advanced_math"]):
+            math_match = re.search(
+                r"(\w+) = (LN|LOG|SIN|COS|TAN|ASIN|ACOS|ATAN)\((\w+)\)", line
+            )
+            if math_match:
+                output, func, operand = math_match.groups()
+                ladder_logic_lines.append(
+                    f"{func.upper()} {output} = {func}({operand})"
+                )
+
+            elif any(op in line for op in control_flow_mappings.keys()):
+                print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
+                line = map_operations(line, control_flow_mappings, prefix="LL")
+                print(f"[DEBUG] Line Before Tokenization: {line}")
+
+                tokens = tokenize_line(line)
+                output = tokens[0] if len(tokens) > 0 else None
+                op1 = tokens[2] if len(tokens) > 2 else None
+                control_flow.append(line)
+                ladder_logic_lines.append(f"{output} = {op1} CONTROL FLOW")
+
+        else:
+            ladder_logic_lines.append(f"XIO {op1} OTE {output}")
+
+            ladder_logic_lines.append(
+                f"XIC {op1} AND {op2} OTE {output}"
+                if "AND" in line
+                else (
+                    f"XIC {op1} OR {op2} OTE {output}"
+                    if "OR" in line
+                    else (
+                        f"XIC {op1} {op2} OTE {output}"
+                        if "XIC" in line
+                        else f"XIO {op1} OTE {output}"
+                    )
+                )
+            )
 
 def flatten_mappings(mapping, prefix=None):
     """
@@ -173,80 +330,8 @@ def tokenize_line(line):
     print(f"[DEBUG] Tokens After Tokenization: {tokens}")
     return tokens
 
-def parse_plutus_script(plutus_code):
-    """Extract conditions, state updates, nested logic, and advanced math from a Morley-specific Plutus script."""
-    conditions = []
-    state_changes = []
-    arithmetic_operations = []
-    bitwise_operations = []
-    control_flow = []
-    ladder_logic_lines = []
-    nested_stack = deque(maxlen=MAX_NESTING_LEVEL)
 
-    lines = plutus_code.split("\n")
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-
-        print(f"[DEBUG] Line Before Tokenization: {line}")
-        tokens = tokenize_line(line)
-        print(f"[DEBUG] Tokens: {tokens}")
-        output = tokens[0]
-        op1 = tokens[2] if len(tokens) > 2 else None
-        op2 = tokens[4] if len(tokens) > 4 else None
-
-        print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
-
-        condition_match = re.search(r'traceIfFalse "(.+?)" \((.+?)\)', line)
-        if condition_match:
-            print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
-            if "if" in line or "else" in line or "while" in line or "for" in line:
-                conditions.append(line)
-            message, condition = condition_match.groups()
-            ladder_logic_lines.append(f"XIC {condition} OTE {message}")
-            return ladder_logic_lines
-
-        if any(func in line for func in operations["advanced_math"]):
-            math_match = re.search(
-                r"(\w+) = (LN|LOG|SIN|COS|TAN|ASIN|ACOS|ATAN)\((\w+)\)", line
-            )
-            if math_match:
-                output, func, operand = math_match.groups()
-                ladder_logic_lines.append(
-                    f"{func.upper()} {output} = {func}({operand})"
-                )
-
-            elif any(op in line for op in control_flow_mappings.keys()):
-                print(f"[DEBUG] Output: {output}, Operand1: {op1}, Operand2: {op2}")
-                line = map_operations(line, control_flow_mappings, prefix="LL")
-                print(f"[DEBUG] Line Before Tokenization: {line}")
-
-                tokens = tokenize_line(line)
-                output = tokens[0] if len(tokens) > 0 else None
-                op1 = tokens[2] if len(tokens) > 2 else None
-                control_flow.append(line)
-                ladder_logic_lines.append(f"{output} = {op1} CONTROL FLOW")
-
-        else:
-            ladder_logic_lines.append(f"XIO {op1} OTE {output}")
-
-            ladder_logic_lines.append(
-                f"XIC {op1} AND {op2} OTE {output}"
-                if "AND" in line
-                else (
-                    f"XIC {op1} OR {op2} OTE {output}"
-                    if "OR" in line
-                    else (
-                        f"XIC {op1} {op2} OTE {output}"
-                        if "XIC" in line
-                        else f"XIO {op1} OTE {output}"
-                    )
-                )
-            )
-
-
-def handle_nested_logic(nested_stack, prefix="LL"):
+def handle_nested_logic(nested_stack, control_flow, plutus_code, prefix="LL"):
     """
     Recursively handle nested logic and maintain consistent prefixing.
     """
@@ -264,9 +349,6 @@ def handle_nested_logic(nested_stack, prefix="LL"):
         if "NESTED_" in nested_condition:
             nested_logic_lines = handle_nested_logic(nested_stack, prefix="LL")
             ladder_logic_lines.extend(nested_logic_lines)
-
-        # Return only after all recursion is complete
-        return ladder_logic_lines
 
     if "mustValidateIn" in plutus_code:
         slot_match = re.search(r"mustValidateIn \(from slot(\d+)\)", plutus_code)
@@ -286,6 +368,9 @@ def handle_nested_logic(nested_stack, prefix="LL"):
         nested_stack.append(line)
         ladder_logic_lines.append(f"NESTED LOGIC: {line}")
         control_flow.append(line)
+        nested_logic_lines = handle_nested_logic(nested_stack, control_flow, plutus_code, prefix="LL")
+        ladder_logic_lines.extend(nested_logic_lines)
+
         if DEBUG_MODE:
             print(f"Nested Logic Detected: {line}")
 
@@ -324,15 +409,6 @@ def handle_nested_logic(nested_stack, prefix="LL"):
 
     if not ladder_logic_lines:
         ladder_logic_lines.append("No Ladder Logic Generated")
-
-    return (
-        conditions,
-        state_changes,
-        arithmetic_operations,
-        bitwise_operations,
-        control_flow,
-        nested_list,
-    )
 
 
 def convert_to_ladder_logic(
@@ -421,18 +497,18 @@ def reverse_compile_plutus_to_ll(plutus_code):
             nested_logic,
         )
     )
-    return ladder_logic_code
-
+    print("[DEBUG] Returning Ladder Logic Code...")
 
     if __name__ == "__main__":
+        main()
         example_plutus = """ 
-    traceIfFalse "Condition 1 failed" (X1 && X2)
-    traceIfFalse "Condition 2 failed" (Y1 || Y2)
-    let state = state + 1
-    let result = LN(X) + COS(Y)
-    let nested = (A && B) || (C && (D || E))
-    if balance >= 100
-    JMP LABEL1
-    """
-    ll_output = reverse_compile_plutus_to_ll(example_plutus)
-    print(f"Generated Ladder Logic:\n{ll_output}")
+        traceIfFalse "Condition 1 failed" (X1 && X2)
+        traceIfFalse "Condition 2 failed" (Y1 || Y2)
+        let state = state + 1
+        let result = LN(X) + COS(Y)
+        let nested = (A && B) || (C && (D || E))
+        if balance >= 100
+        JMP LABEL1
+        """
+        ll_output = reverse_compile_plutus_to_ll(example_plutus)
+        print(f"Generated Ladder Logic:\n{ll_output}")
