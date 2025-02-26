@@ -1,5 +1,5 @@
 {
-    "logical_operations": {
+    "logical_operators": {
         "AND": {
             "ir_representation": "ST_AND"
         },
@@ -236,10 +236,10 @@
             "description": "Real to Integer Conversion"
         },
         "MOV": {
-            "symbol": "MOV",
-            "ir_representation": "ST_MOV",
-            "description": "Move (Structured Text)"
-        },
+  "symbol": "MOV",
+  "ir_representation": "ST_MOVE_ST",
+  "description": "Move (Structured Text Specific)"
+},
         "SWP": {
             "symbol": "SWP",
             "ir_representation": "ST_SWP",

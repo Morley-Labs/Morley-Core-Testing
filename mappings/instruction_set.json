@@ -198,6 +198,14 @@
     "NESTED_XOR": {
         "symbol": "^",
         "ir_representation": "IR_NESTED_XOR"
+    },
+    "NESTED_IF": {
+        "symbol": "if",
+        "ir_representation": "IR_NESTED_IF"
+    },
+    "NESTED_ELSE": {
+        "symbol": "else",
+        "ir_representation": "IR_NESTED_ELSE"
     }
 },
     "comparison_operators": {

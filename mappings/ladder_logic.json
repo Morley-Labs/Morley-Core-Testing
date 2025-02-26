@@ -38,10 +38,10 @@
             "description": "Latching Relay Reset"
         },
         "reset": {
-            "symbol": "RES",
-            "ir_representation": "LL_RES",
-            "description": "Reset Coil"
-        }
+  "symbol": "RES",
+  "ir_representation": "LL_RES_COIL",
+  "description": "Reset Coil"
+}
     },
     "timers": {
         "TP": {
@@ -82,9 +82,9 @@
     "description": "Counter Down"
 },
 "RES": {
-    "symbol": "RES",
-    "ir_representation": "LL_RES",
-    "description": "Counter Reset"
+  "symbol": "RES",
+  "ir_representation": "LL_RES_COUNTER",
+  "description": "Counter Reset"
 }
     },
 "arithmetic": {

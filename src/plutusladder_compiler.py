@@ -272,6 +272,14 @@ def ll_to_plutus(ladder_core_ir):
 
     return "\n".join(plutus_code)
 
+
+def compile_ir_to_plutus_haskell_enhanced(ladder_core_ir):
+    """
+    Wrapper function to expose ll_to_plutus as compile_ir_to_plutus_haskell_enhanced
+    """
+    return ll_to_plutus(ladder_core_ir)
+
+
 # Example Execution
 if __name__ == "__main__":
     example_ir = {
