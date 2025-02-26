@@ -6,6 +6,9 @@ import re
 from collections import deque
 from src.reverse_compiler.utils import *
 from src.reverse_compiler.reverse_compiler import *
+import sys
+
+sys.path.append("./src")
 
 
 def flatten_and_indent(ladder_logic_lines, level=0):
@@ -355,20 +358,32 @@ def reverse_compile_plutus_to_ll(plutus_code, context="LL"):
         ladder_logic_lines,
     ) = parse_plutus_script(plutus_code, context)
 
-    # Convert to Ladder Logic
-    ladder_logic_lines = convert_to_ladder_logic(
-        conditions,
-        state_changes,
-        state_updates,
-        arithmetic_operations,
-        bitwise_operations,
-        control_flow,
-        nested_logic,
+    # Iterate over each condition and convert to ladder logic
+    for condition in conditions:
+        ladder_logic_lines = convert_to_ladder_logic(
+            [condition],  # Pass each condition
+            state_changes,
+            state_updates,
+            arithmetic_operations,
+            bitwise_operations,
+            control_flow,
+            nested_logic,
+            ladder_logic_lines,
+            context,
+        )
+    print(
+        "[DEBUG] ladder_logic_lines before flattening (Final Output):",
         ladder_logic_lines,
-        context,  # Pass context here
     )
 
-    nested_output = flatten_and_indent(ladder_logic_lines)
+    if ladder_logic_lines is None:
+        print(
+        "[ERROR] ladder_logic_lines is None at Final Output. Check overall mappings and conditions handling."
+    )
+        return "ERROR: ladder_logic_lines is None"
+    else:
+        nested_output = flatten_and_indent(ladder_logic_lines)
+
     final_output = "\n".join(nested_output)  # << This joins the lines correctly
     print("[DEBUG] Final Ladder Logic Output:\n", final_output)
     return final_output  # << Return the joined output
@@ -379,7 +394,7 @@ MAX_NESTING_LEVEL = 10
 
 
 def convert_to_ladder_logic(
-    conditions,
+    conditions,  # Add this as the first parameter
     state_changes,
     state_updates,
     arithmetic_operations,
@@ -387,30 +402,164 @@ def convert_to_ladder_logic(
     control_flow,
     nested_logic,
     ladder_logic_lines,
-    context,  # Accept context as a parameter
+    context,
 ):
+
     """Convert extracted Plutus components to Ladder Logic."""
-    ladder_logic_lines = []
+    ladder_logic_lines = ladder_logic_lines or []  # Ensure it's always a list
+
+    print("[DEBUG] Conditions Passed to convert_to_ladder_logic:", conditions)
+    print("[DEBUG] State Changes Passed to convert_to_ladder_logic:", state_changes)
+    print(
+        "[DEBUG] Arithmetic Operations Passed to convert_to_ladder_logic:",
+        arithmetic_operations,
+    )
+    print("[DEBUG] Control Flow Passed to convert_to_ladder_logic:", control_flow)
+    print(
+        "[DEBUG] Mappings Available:",
+        logical_mappings,
+        arithmetic_mappings,
+        control_flow_mappings,
+    )
 
     # Handle Conditions
     for condition in conditions:
-        ladder_logic_lines.append(f"XIC {condition}")
-        print(f"[DEBUG] Converted Condition: XIC {condition}")
+        # Split condition into tokens
+        tokens = condition.split()  # Tokenize the condition properly
+        print(f"[DEBUG] Tokens in Condition: {tokens}")
 
-    # Handle State Changes
-    for state_change in state_changes:
-        ladder_logic_lines.append(f"MOV {state_change}")
-        print(f"[DEBUG] Converted State Change: MOV {state_change}")
+    # Initialize the mapped line
+    mapped_line = "XIC "
+
+    # Go through each token and map accordingly
+    for token in tokens:
+        if token in logical_mappings:
+            mapped_value = logical_mappings[token]
+            mapped_line += f"{mapped_value} "
+        else:
+            # Clean up traceIfFalse and add the condition as XIC input
+            token = token.replace("traceIfFalse", "").replace('"', "").strip()
+            mapped_line += f"{token} " if token not in ["traceIfFalse"] else ""
+
+    # Add OTE at the end to indicate output (based on test expectations)
+    if "traceIfFalse" in condition:
+        mapped_line += "OTE Condition Failed"
+    else:
+        mapped_line += "OTE"
+
+    mapped_line = mapped_line.strip()
+    ladder_logic_lines.append(mapped_line)
+    print(f"[DEBUG] Converted Condition: {mapped_line}")
+
+    # Handle Comparison Operators
+    for comparison in control_flow:
+        # Split comparison into tokens
+        comparison_tokens = comparison.split()
+        print(f"[DEBUG] Tokens in Comparison: {comparison_tokens}")
+
+    # Initialize the mapped line
+    mapped_line = "XIC "
+
+    # Tokenize the condition
+    tokens = []
+
+    # Go through each token and map accordingly
+    for token in tokens:
+        mapped_line += (
+            f"{token} " if token not in ["=", "<", ">", "<=", ">="] else token + " "
+        )
+
+    # Add OTE at the end to indicate output (based on test expectations)
+    mapped_line += "OTE Check Comparison"
+
+    mapped_line = mapped_line.strip()
+    ladder_logic_lines.append(mapped_line)
+    print(f"[DEBUG] Mapped Comparison: {mapped_line}")
 
     # Handle State Updates
-    for state_update in state_updates:
-        ladder_logic_lines.append(f"UPDATE {state_update}")
-        print(f"[DEBUG] Converted State Update: UPDATE {state_update}")
+    if state_updates:
+        print("[DEBUG] Found State Updates:", state_updates)
+        for state_update in state_updates:
+            print("[DEBUG] Checking State Update:", state_update)
+
+        # Tokenize the state update
+        tokens = state_update.split()
+        print("[DEBUG] Tokens in State Update:", tokens)
+
+        # Initialize the mapped line
+        mapped_line = "MOV "
+
+        # Tokenize the state update
+        tokens = state_update.split()
+
+        # Go through each token and map accordingly
+        for token in tokens:
+            if token != "let":
+                mapped_line += f"{token} " if token != "let" else ""
+
+        mapped_line = mapped_line.strip()
+
+        # Check and append to ladder_logic_lines if valid
+        if mapped_line:
+            ladder_logic_lines.append(mapped_line)
+            print(f"[DEBUG] Mapped State Update: {mapped_line}")
+        else:
+            print("[DEBUG] No State Updates Found.")
 
     # Handle Arithmetic Operations
+    if arithmetic_operations:
+        print("[DEBUG] Found Arithmetic Operations:", arithmetic_operations)
     for arithmetic_operation in arithmetic_operations:
-        ladder_logic_lines.append(f"ARITH {arithmetic_operation}")
-        print(f"[DEBUG] Converted Arithmetic Operation: ARITH {arithmetic_operation}")
+        print("[DEBUG] Checking Arithmetic Operation:", arithmetic_operation)
+
+        # Tokenize the operation
+        arithmetic_tokens = arithmetic_operation.split()
+        print("[DEBUG] Tokens in Arithmetic Operation:", arithmetic_tokens)
+
+        # Initialize the mapped line
+        mapped_line = ""
+        skip_next = False  # To handle "=" and ignore it
+
+        # Go through each token and map accordingly
+        for i, token in enumerate(arithmetic_tokens):
+
+            # Skip the next token if flagged
+            if skip_next:
+                skip_next = False
+                continue
+
+            # If "=" is found, skip it and continue to next token
+            if token == "=":
+                mapped_line += f"{tokens[i-1]} = "
+                skip_next = True
+                continue
+
+            # Check if the token is in the arithmetic mappings
+            if token in arithmetic_mappings:
+                mapped_value = arithmetic_mappings[token]
+                mapped_line += f"{mapped_value} "
+            else:
+                mapped_line += f"{token} " if token not in ["+"] else "ADD "
+
+        # Prefix with ADD if "+" is present
+        # Check and map arithmetic operations
+        if "+" in tokens:
+            mapped_line = "ADD " + " ".join(tokens[1:]).strip()
+
+        # Check if the operation is in the arithmetic mappings
+        for op, ll_op in arithmetic_mappings.items():
+            if op in tokens:
+                mapped_line = f"{ll_op} " + mapped_line.strip()
+
+        # Strip any extra spaces
+        mapped_line = mapped_line.strip()
+
+        # Check and append to ladder_logic_lines if valid
+        if mapped_line:
+            ladder_logic_lines.append(mapped_line)
+            print(f"[DEBUG] Mapped Arithmetic Operation: {mapped_line}")
+        else:
+            print("[DEBUG] No Arithmetic Operations Found.")
 
     # Handle Bitwise Operations
     for bitwise_operation in bitwise_operations:
@@ -432,19 +581,14 @@ def convert_to_ladder_logic(
     # Handle Nested Logic
     for nested in nested_logic:
         # Pass the context to the nested logic handler
-        ladder_logic_lines.extend(
-            handle_nested_logic(nested_logic, control_flow, nested, operations, context)
+        nested_lines = handle_nested_logic(
+            nested_logic, control_flow, nested, operations, context
         )
+        ladder_logic_lines.extend(nested_lines)
         print(f"[DEBUG] Converted Nested Logic: NESTED LOGIC: {nested}")
 
-        # Maintain the hierarchical structure and return as a nested list
-        nested_output = flatten_and_indent(ladder_logic_lines)
-        print("[DEBUG] Final Nested Output:\n", nested_output)
-
-        # Join the output into a single string, preserving the structure
-        final_output = nested_output
-        print("[DEBUG] Final Ladder Logic Output:\n", final_output)
-        return final_output  # Return the fully joined output
+    print("[DEBUG] Final ladder_logic_lines:", ladder_logic_lines)
+    return ladder_logic_lines  # Always return the ladder_logic_lines list
 
 
 if __name__ == "__main__":
