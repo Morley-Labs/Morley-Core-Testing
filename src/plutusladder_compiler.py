@@ -4,6 +4,9 @@ Transforms LadderCore IR into valid Plutus Haskell and Plutus Core (PLC) with st
 """
 
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 def compile_ir_to_plutus_haskell_enhanced(ir_data):
     """
@@ -27,7 +30,9 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
            slot_constraint = f"slot{ir_data['timestamp']}"
            if f'mustValidateIn (from {slot_constraint})' not in script_lines:
               script_lines.append(f'mustValidateIn (from {slot_constraint})')
-              print(f"Slot-Based Time Constraint Applied: mustValidateIn (from {slot_constraint})")
+              logger.info(
+                  f"Slot-Based Time Constraint Applied: mustValidateIn (from {slot_constraint})"
+              )
 
 
     # Handle Anchoring Mechanism (Connecting L2 to L1)
@@ -36,11 +41,15 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
           slot_constraint = f"slot{ir_data['timestamp']}"
           if f'mustValidateIn (from {slot_constraint})' not in script_lines:
              script_lines.append(f'mustValidateIn (from {slot_constraint})')
-             print(f"Immediate Anchoring Applied: mustValidateIn (from {slot_constraint})")
+             logger.info(
+                 f"Immediate Anchoring Applied: mustValidateIn (from {slot_constraint})"
+             )
     
        elif ir_data["anchoring"] == "finality":
             script_lines.append(f'-- Timestamp {ir_data["timestamp"]} stored for finality anchoring')
-            print(f"Finality Anchoring Deferred: Timestamp {ir_data["timestamp"]} recorded for later submission")
+            logger.info(
+                f"Finality Anchoring Deferred: Timestamp {ir_data['timestamp']} recorded for later submission"
+            )
     
     import hashlib  # Required for Blake2b hash generation
 
@@ -54,12 +63,16 @@ def compile_ir_to_plutus_haskell_enhanced(ir_data):
         # Store the hash in the Plutus script
         script_lines.append(f'mustValidateIn (from slot{ir_data["timestamp"]})')
         script_lines.append(f'-- Verifiable Hash: {blake2b_hash}')
-        print(f"Verifiable Hash Anchoring Applied: mustValidateIn (from slot{ir_data['timestamp']}) with Hash: {blake2b_hash}")
+        logger.info(
+            f"Verifiable Hash Anchoring Applied: mustValidateIn (from slot{ir_data['timestamp']}) with Hash: {blake2b_hash}"
+        )
 
     # Handle Timers
     if "timers" in ir_data:
         for timer_name, timer_data in ir_data["timers"].items():
-            print(f"Compiling Timer: {timer_name}, Duration: {timer_data['duration']}ms → mustValidateIn (from slotX)")
+            logger.info(
+                f"Compiling Timer: {timer_name}, Duration: {timer_data['duration']}ms → mustValidateIn (from slotX)"
+            )
 
             if timer_data["type"] == "TON":
                 # Dynamically use `slotX` from IR if available
