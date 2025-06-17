@@ -27,13 +27,13 @@ class TestPlutusLadderCompiler(unittest.TestCase):
         )
         self.assertIn("traceIfFalse", compile_ir_to_plutus_haskell_enhanced(ir_data))
 
-def test_arithmetic_operations(self):
-    ir_data = {
-        "math_operations": {
-            "C": {"operation": "ADD", "args": ["A", "B"]}
+    def test_arithmetic_operations(self):
+        ir_data = {
+            "math_operations": {
+                "C": {"operation": "ADD", "args": ["A", "B"]}
+            }
         }
-    }
-    expected_output = (
-        'traceIfFalse "Addition failed" (C == A + B)\n'
-    )
-    self.assertIn("traceIfFalse", compile_ir_to_plutus_haskell_enhanced(ir_data))
+        expected_output = (
+            'traceIfFalse "Addition failed" (C == A + B)\n'
+        )
+        self.assertIn("traceIfFalse", compile_ir_to_plutus_haskell_enhanced(ir_data))
