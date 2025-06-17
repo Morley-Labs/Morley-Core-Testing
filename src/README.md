@@ -10,7 +10,7 @@ Parses **Ladder Logic (.ll) files** and converts them into Morley-IR.
 ### **🔹 plutusladder_compiler.py**
 Compiles Morley-IR into **Plutus Core smart contracts**, making Ladder Logic executable on Cardano.
 
-### **🔹 validator_ir_transformer.py**
+### **🔹 validator_ir_transform.py**
 Validates and optimizes IR transformations before they are compiled.
 
 ### **🔹 reverse_compiler/**
