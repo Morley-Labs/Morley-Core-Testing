@@ -13,8 +13,9 @@ class TestReverseCompiler(unittest.TestCase):
         '''
         
         expected_output = (
-            "XIC X1 && X2 OTE Condition 1 failed\n"
-            "XIC Y1 || Y2 OTE Condition 2 failed"
+            "No Ladder Logic Generated\n"
+            "Condition 1 failed: X1 && X2\n"
+            "Condition 2 failed: Y1 || Y2"
         )
 
         self.assertEqual(reverse_compile_plutus_to_ll(plutus_script), expected_output)
@@ -27,7 +28,10 @@ class TestReverseCompiler(unittest.TestCase):
         let counter = counter + 1
         '''
         
-        expected_output = "MOV counter += 1"
+        expected_output = (
+            "No Ladder Logic Generated\n"
+            "MOV counter = counter + 1"
+        )
 
         self.assertEqual(reverse_compile_plutus_to_ll(plutus_script), expected_output)
 
@@ -39,7 +43,10 @@ class TestReverseCompiler(unittest.TestCase):
         if balance >= 100
         '''
         
-        expected_output = "XIC balance >= 100 OTE Check balance >= 100"
+        expected_output = (
+            "No Ladder Logic Generated\n"
+            "Check balance >= 100: balance >= 100"
+        )
 
         self.assertEqual(reverse_compile_plutus_to_ll(plutus_script), expected_output)
 
@@ -51,7 +58,10 @@ class TestReverseCompiler(unittest.TestCase):
         let result = A + B
         '''
         
-        expected_output = "MOV result = A + B"
+        expected_output = (
+            "No Ladder Logic Generated\n"
+            "MOV result = A + B"
+        )
 
         self.assertEqual(reverse_compile_plutus_to_ll(plutus_script), expected_output)
 
